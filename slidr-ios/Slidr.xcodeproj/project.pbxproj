@@ -1,0 +1,366 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA001 /* SlidrApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA001 /* SlidrApp.swift */; };
+		AA002 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA002 /* RootView.swift */; };
+		AA003 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA003 /* MainTabView.swift */; };
+		AA004 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA004 /* Colors.swift */; };
+		AA005 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA005 /* User.swift */; };
+		AA006 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA006 /* Message.swift */; };
+		AA007 /* MockUsers.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA007 /* MockUsers.swift */; };
+		AA008 /* MockMessages.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA008 /* MockMessages.swift */; };
+		AA009 /* UserRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA009 /* UserRepository.swift */; };
+		AA010 /* MessageRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA010 /* MessageRepository.swift */; };
+		AA011 /* AuthRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA011 /* AuthRepository.swift */; };
+		AA012 /* TagChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA012 /* TagChip.swift */; };
+		AA013 /* UserGridCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA013 /* UserGridCard.swift */; };
+		AA014 /* ProfileImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA014 /* ProfileImage.swift */; };
+		AA015 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA015 /* LoginView.swift */; };
+		AA016 /* RegisterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA016 /* RegisterView.swift */; };
+		AA017 /* ProfileSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA017 /* ProfileSetupView.swift */; };
+		AA018 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA018 /* HomeView.swift */; };
+		AA019 /* UserProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA019 /* UserProfileView.swift */; };
+		AA020 /* MyProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA020 /* MyProfileView.swift */; };
+		AA021 /* InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA021 /* InboxView.swift */; };
+		AA022 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA022 /* ChatView.swift */; };
+		AA023 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA023 /* SettingsView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		BA001 /* SlidrApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlidrApp.swift; sourceTree = "<group>"; };
+		BA002 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		BA003 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		BA004 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
+		BA005 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		BA006 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
+		BA007 /* MockUsers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockUsers.swift; sourceTree = "<group>"; };
+		BA008 /* MockMessages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockMessages.swift; sourceTree = "<group>"; };
+		BA009 /* UserRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserRepository.swift; sourceTree = "<group>"; };
+		BA010 /* MessageRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageRepository.swift; sourceTree = "<group>"; };
+		BA011 /* AuthRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRepository.swift; sourceTree = "<group>"; };
+		BA012 /* TagChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagChip.swift; sourceTree = "<group>"; };
+		BA013 /* UserGridCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserGridCard.swift; sourceTree = "<group>"; };
+		BA014 /* ProfileImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileImage.swift; sourceTree = "<group>"; };
+		BA015 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		BA016 /* RegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterView.swift; sourceTree = "<group>"; };
+		BA017 /* ProfileSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupView.swift; sourceTree = "<group>"; };
+		BA018 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		BA019 /* UserProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileView.swift; sourceTree = "<group>"; };
+		BA020 /* MyProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyProfileView.swift; sourceTree = "<group>"; };
+		BA021 /* InboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxView.swift; sourceTree = "<group>"; };
+		BA022 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		BA023 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		PROD001 /* Slidr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Slidr.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		MAIN_GROUP = {
+			isa = PBXGroup;
+			children = (
+				SLIDR_GROUP /* Slidr */,
+				PRODUCTS_GROUP /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		PRODUCTS_GROUP = {
+			isa = PBXGroup;
+			children = (
+				PROD001 /* Slidr.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		SLIDR_GROUP = {
+			isa = PBXGroup;
+			children = (
+				APP_GROUP /* App */,
+				THEME_GROUP /* Theme */,
+				DATA_GROUP /* Data */,
+				COMP_GROUP /* Components */,
+				VIEWS_GROUP /* Views */,
+			);
+			path = Slidr;
+			sourceTree = "<group>";
+		};
+		APP_GROUP = {
+			isa = PBXGroup;
+			children = (BA001, BA002, BA003);
+			path = App;
+			sourceTree = "<group>";
+		};
+		THEME_GROUP = {
+			isa = PBXGroup;
+			children = (BA004);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		DATA_GROUP = {
+			isa = PBXGroup;
+			children = (
+				MODELS_GROUP /* Models */,
+				MOCK_GROUP /* Mock */,
+				REPOS_GROUP /* Repositories */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		MODELS_GROUP = {
+			isa = PBXGroup;
+			children = (BA005, BA006);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		MOCK_GROUP = {
+			isa = PBXGroup;
+			children = (BA007, BA008);
+			path = Mock;
+			sourceTree = "<group>";
+		};
+		REPOS_GROUP = {
+			isa = PBXGroup;
+			children = (BA009, BA010, BA011);
+			path = Repositories;
+			sourceTree = "<group>";
+		};
+		COMP_GROUP = {
+			isa = PBXGroup;
+			children = (BA012, BA013, BA014);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		VIEWS_GROUP = {
+			isa = PBXGroup;
+			children = (
+				AUTH_GROUP /* Auth */,
+				SETUP_GROUP /* Setup */,
+				HOME_GROUP /* Home */,
+				PROFILE_GROUP /* Profile */,
+				INBOX_GROUP /* Inbox */,
+				CHAT_GROUP /* Chat */,
+				SETTINGS_GROUP /* Settings */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		AUTH_GROUP = {isa = PBXGroup; children = (BA015, BA016); path = Auth; sourceTree = "<group>";};
+		SETUP_GROUP = {isa = PBXGroup; children = (BA017); path = Setup; sourceTree = "<group>";};
+		HOME_GROUP = {isa = PBXGroup; children = (BA018); path = Home; sourceTree = "<group>";};
+		PROFILE_GROUP = {isa = PBXGroup; children = (BA019, BA020); path = Profile; sourceTree = "<group>";};
+		INBOX_GROUP = {isa = PBXGroup; children = (BA021); path = Inbox; sourceTree = "<group>";};
+		CHAT_GROUP = {isa = PBXGroup; children = (BA022); path = Chat; sourceTree = "<group>";};
+		SETTINGS_GROUP = {isa = PBXGroup; children = (BA023); path = Settings; sourceTree = "<group>";};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		TARGET001 /* Slidr */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BCL001 /* Build configuration list for PBXNativeTarget "Slidr" */;
+			buildPhases = (
+				SOURCES_PHASE /* Sources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = Slidr;
+			productName = Slidr;
+			productReference = PROD001 /* Slidr.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		PROJECT = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					TARGET001 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = BCL000 /* Build configuration list for PBXProject "Slidr" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base);
+			mainGroup = MAIN_GROUP;
+			productRefGroup = PRODUCTS_GROUP /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (TARGET001 /* Slidr */);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		SOURCES_PHASE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA001, AA002, AA003, AA004, AA005, AA006,
+				AA007, AA008, AA009, AA010, AA011, AA012,
+				AA013, AA014, AA015, AA016, AA017, AA018,
+				AA019, AA020, AA021, AA022, AA023,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		BC001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("DEBUG=1", "$(inherited)");
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BC002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		BC003 /* Debug - Target */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSAppTransportSecurity = "<dict><key>NSAllowsArbitraryLoads</key><true/></dict>";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.slidr.app";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		BC004 /* Release - Target */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSAppTransportSecurity = "<dict><key>NSAllowsArbitraryLoads</key><true/></dict>";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.slidr.app";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BCL000 /* Build configuration list for PBXProject "Slidr" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (BC001 /* Debug */, BC002 /* Release */);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BCL001 /* Build configuration list for PBXNativeTarget "Slidr" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (BC003 /* Debug */, BC004 /* Release */);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+	};
+	rootObject = PROJECT /* Project object */;
+}
