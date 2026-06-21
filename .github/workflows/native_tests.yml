@@ -1,0 +1,51 @@
+name: Native C++ Tests (GoogleTest)
+
+on:
+  push:
+    paths:
+      - "android/app/src/main/cpp/**"
+      - "android/app/src/test_native/**"
+      - "android/app/CMakeLists.txt"
+  pull_request:
+    paths:
+      - "android/app/src/main/cpp/**"
+      - "android/app/src/test_native/**"
+      - "android/app/CMakeLists.txt"
+  workflow_dispatch:
+
+jobs:
+  host-native-tests:
+    name: Host-side GoogleTest
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "3.22.x"
+
+      - name: Configure (downloads GoogleTest via FetchContent)
+        working-directory: android/app
+        run: |
+          cmake -S . -B build/native-test-host \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_NATIVE_TESTS=ON
+
+      - name: Build
+        working-directory: android/app
+        run: cmake --build build/native-test-host --parallel
+
+      - name: Run tests
+        working-directory: android/app/build/native-test-host
+        run: ctest --output-on-failure --parallel 4
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-test-results
+          path: android/app/build/native-test-host/Testing/

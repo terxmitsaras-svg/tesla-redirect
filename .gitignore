@@ -7,6 +7,10 @@ android/app/build/
 *.keystore
 *.jks
 
+# Native test build artefacts (cmake configures these on each dev machine)
+android/app/build/native-test-host/
+android/app/build/native-test-device/
+
 # Python
 __pycache__/
 *.pyc
