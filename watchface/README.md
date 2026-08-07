@@ -1,109 +1,91 @@
-# "Come Forth" — Galaxy Watch6 Classic watch face
+# Galaxy Watch6 Classic watch face — Jesus, arms as the hands
 
-A watch face built around the raising of Lazarus: Jesus stands fixed at the
-tomb, and his own outstretched arms *are* the hands of the clock — no
-separate needle graphics, no seconds hand.
+Built directly from the original clock image (`build/source_clock.png`): the
+vintage Roman-numeral dial, the aged paper, the wooden bezel and the figure
+are all the real pixels of that image — nothing was redrawn.
 
-- **Left arm = hour hand** — the shorter arm, in the "Lazarus, come forth"
-  pointing gesture.
-- **Right arm = minute hand** — the longer arm, in a blessing gesture.
-- **No second hand** by design (simply don't add one in Watch Face Studio).
-- Background: the tomb's rock-cut arch, the stone rolled away, Lazarus
-  emerging in his grave-cloths, two mourners, a resurrection lily, and dawn
-  light breaking behind the halo.
+The figure's own arms are the hands of the clock:
 
-This is original vector artwork (not a copy of any existing photo/painting),
-built to be crisp and legible at watch scale on an AMOLED display.
+- **Left arm = hour hand**
+- **Right arm = minute hand**
+- **No second hand.**
+
+Both arms were cut out of the photograph and re-anchored so they pivot on the
+exact centre of the dial. The dial behind them was reconstructed where the
+arms used to be, so nothing "ghosts" when they rotate.
 
 ## Preview
 
-| 10:10 | 3:15 |
-|---|---|
-| ![preview](preview/preview_10-10.png) | ![preview](preview/preview_03-15.png) |
+| 10:10 | 3:00 | 9:15 | 6:30 |
+|---|---|---|---|
+| ![](preview/preview_1010.png) | ![](preview/preview_0300.png) | ![](preview/preview_0915.png) | ![](preview/preview_0630.png) |
+
+![all positions](preview/all-positions.png)
 
 ## Files
 
 ```
 watchface/
   assets/
-    background.png    450x450  — static background layer (opaque)
-    hour_hand.png      100x156 — left arm, HOUR hand (transparent PNG)
-    minute_hand.png     90x211 — right arm, MINUTE hand (transparent PNG)
-    center_cap.png       40x40 — gold pivot cap, top-most static layer
-  source/              editable SVG/HTML source for every asset above
-  preview/             composited renders at sample times
+    480x480/   ← use for the 47 mm Galaxy Watch6 Classic
+    432x432/   ← use for the 43 mm
+        background.png     the dial + body (arms removed, dial rebuilt behind them)
+        hour_hand.png      left arm
+        minute_hand.png    right arm
+        head_overlay.png   head, sits ON TOP so the arms pass behind it
+  build/       the script that regenerates everything from source_clock.png
+  preview/     composited renders at several times
 ```
 
-### Pivot points (important for assembly)
+Every asset is the **full size of the face** (480×480 or 432×432) and is
+**centred**, with the rotation pivot at the exact image centre. So in Watch
+Face Studio every layer is placed at 0,0 at full size, and both hand pivots
+are **X = 0.5, Y = 0.5**. There are no offsets to get wrong.
 
-Both hands rotate around the *same* center point as the watch face itself.
-Each hand image is drawn pointing straight up (12:00 rest position), with
-its pivot expressed as a fraction of the image's own width/height so it
-scales cleanly to any project resolution:
+## Assembling it in Watch Face Studio
 
-| Layer | Size (px) | Pivot (fraction) | Pivot (px, at native size) |
-|---|---|---|---|
-| `hour_hand.png`   | 100 × 156 | (0.50, 0.904) | (50, 141) |
-| `minute_hand.png` | 90 × 211  | (0.50, 0.905) | (45, 191) |
-| `center_cap.png`  | 40 × 40   | (0.50, 0.50)  | (20, 20)  |
-
-`background.png` is designed on a 450×450 canvas with the dial center at
-(225, 225). Galaxy Watch6 Classic ships in two sizes — 43 mm (432×432) and
-47 mm (480×480) — Watch Face Studio scales the whole canvas uniformly to
-whichever project resolution you pick, so the pivot fractions above stay
-correct either way.
-
-## Build it with Samsung Watch Face Studio (recommended, no coding)
-
-Watch Face Studio is Samsung's free official tool for building watch faces
-for Galaxy Watch / Wear OS. This is the realistic, supported path — actually
-compiling and signing a watch-face APK isn't something that can be done
-headlessly here, so these are the exact steps to finish it yourself in the
-GUI:
-
-1. **Install Watch Face Studio** (Windows or macOS):
+1. Install **Watch Face Studio** (free, Samsung):
    https://developer.samsung.com/watch-face-studio
-2. **New Project** → shape **Round** → resolution: **480×480** if you have
-   the 47 mm Galaxy Watch6 Classic, or **432×432** for the 43 mm. (If unsure,
-   check *Settings → Watch info* on the watch, or the box — 47 mm is the
-   larger case.)
-3. **Background layer**: drag in `assets/background.png`, stretch to fill
-   the full canvas (0,0 to canvas edge).
-4. **Add a Hand layer → Hour**:
-   - Image: `assets/hour_hand.png`
-   - Pivot / anchor: **X = 0.5, Y = 0.904** (Watch Face Studio's hand tool
-     lets you set the pivot as a normalized point on the image — drag it to
-     just above the bottom edge, centered horizontally, or type the values).
-   - Rotation binding: **Hour**, 12-hour analog (30° per hour + minute
-     contribution — this is the tool's default "smooth hour hand" mode).
-5. **Add a Hand layer → Minute**:
-   - Image: `assets/minute_hand.png`
-   - Pivot: **X = 0.5, Y = 0.905**
-   - Rotation binding: **Minute**, 6° per minute.
-6. **Do not add a Second hand layer.** That's the whole trick to "no
-   seconds" — Watch Face Studio only draws what you give it.
-7. **Top layer (optional but recommended)**: add `assets/center_cap.png` as
-   a static (non-rotating) image, centered at the dial's exact center, so it
-   sits above both hands and hides the seam where they pivot — exactly like
-   a real watch's center cap.
-8. **Preview**: use the built-in simulator's time slider to check the hands
-   sweep correctly and nothing clips at the round bezel edge.
-9. **Install on your Galaxy Watch6 Classic**:
-   - Easiest: pair your watch with Watch Face Studio over Wi-Fi (Studio →
-     *Run on device*, watch needs Developer Mode + ADB debugging enabled in
-     its Watch Face settings) and it installs directly.
-   - Or: *Export* → *Export to APK*, then sideload via the Galaxy Wearable
-     app on your phone (Watch faces → My Watch Faces → install from file) or
-     via `adb install` over Wi-Fi/USB.
+2. **New Project** → **Round** → **480×480** (47 mm) or **432×432** (43 mm).
+   Use the matching folder from `assets/`.
+3. Add the layers in this order, bottom to top — the order matters:
+   1. `background.png` — plain image, full canvas
+   2. `hour_hand.png` — **Hand** layer, index **Hour**, pivot X 0.5 / Y 0.5
+   3. `minute_hand.png` — **Hand** layer, index **Minute**, pivot X 0.5 / Y 0.5
+   4. `head_overlay.png` — plain image, full canvas
+4. **Do not add a second hand.**
+5. `head_overlay.png` must stay **above** both hands. That is what makes an
+   arm pass *behind* the head instead of across the face when it points to 12.
+6. Preview with the time slider, then install: *Run on device* over Wi-Fi
+   (Developer mode + ADB debugging on the watch), or *Export → APK* and
+   sideload through the Galaxy Wearable app on your phone.
 
-Total time for someone doing this the first time: ~15–20 minutes.
+## Notes on the two deliberate changes
 
-## Editing the artwork
+Everything is the original image except two things, both needed to make it
+work as an actual clock:
 
-`source/*.html` are the actual SVG sources (viewable by opening in any
-browser). Each is a self-contained SVG you can edit directly — colors,
-gestures, and the tomb scene are all plain vector paths with named
-gradients (`mantle`, `tunic`, `skin`, `stone`, `wrap`, `halo`, etc.) at the
-top of each file. After editing, re-export to PNG at the same pixel
-dimensions listed above (any SVG-to-PNG renderer works — a headless browser
-screenshot at the exact viewport size is what was used here).
+- **The arms were lengthened** — the hour arm to 71% of the dial radius, the
+  minute arm to 84%. At their natural length both arms reached almost exactly
+  the same distance (59% and 56%), which made hour and minute impossible to
+  tell apart, and neither could clear the robe (which reaches 64%) when
+  pointing downward, so between about 5 and 7 o'clock the hand simply
+  disappeared into the robe.
+- **A soft shadow** was added around each arm so it stays readable where it
+  crosses the robe, which is nearly the same cream tone as the sleeves.
+
+To change either, edit `K_HOUR` / `K_MIN` and the shadow line in
+`build/build.py` and re-run it (needs `pillow`, `numpy`, `scipy`).
+
+## How the cut-out was done
+
+The figure separates cleanly from the dial: a radial median model of the dial
+predicts the paper's colour and vignette at every radius, and the figure shows
+up as a large residual against it. From that silhouette the two arms were
+taken as angular sectors around the dial centre, the body kept, and the sleeve
+drape hanging off the right arm removed with the arms. The hole left behind
+was filled by diffusing the surrounding dial tone inward (multi-scale
+normalised convolution) and adding paper grain matched to the real dial's
+measured grain, so the repair is invisible. Each arm's inner end dissolves
+with a soft radial fade instead of a hard cut, so no seam appears where it
+meets the chest.
