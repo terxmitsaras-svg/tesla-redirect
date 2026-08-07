@@ -1,0 +1,202 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  html,body{margin:0;padding:0;background:#0b0f1f;}
+  svg{display:block;}
+</style>
+</head>
+<body>
+<svg width="450" height="450" viewBox="0 0 450 450" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <radialGradient id="sky" cx="50%" cy="72%" r="85%">
+    <stop offset="0%"  stop-color="#f7d189"/>
+    <stop offset="18%" stop-color="#e79a5a"/>
+    <stop offset="40%" stop-color="#9a5f78"/>
+    <stop offset="68%" stop-color="#3f3d6e"/>
+    <stop offset="100%" stop-color="#161638"/>
+  </radialGradient>
+  <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#fff3cf" stop-opacity="0.95"/>
+    <stop offset="35%" stop-color="#ffe1a0" stop-opacity="0.55"/>
+    <stop offset="100%" stop-color="#ffe1a0" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="hillsFar" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#4b4f7c"/>
+    <stop offset="100%" stop-color="#383a63"/>
+  </linearGradient>
+  <linearGradient id="hillsNear" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#8a6249"/>
+    <stop offset="100%" stop-color="#5f4433"/>
+  </linearGradient>
+  <linearGradient id="mound" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#a3805f"/>
+    <stop offset="55%" stop-color="#7c5c44"/>
+    <stop offset="100%" stop-color="#523d2c"/>
+  </linearGradient>
+  <radialGradient id="caveDark" cx="50%" cy="35%" r="75%">
+    <stop offset="0%" stop-color="#f8d998" stop-opacity="0.9"/>
+    <stop offset="30%" stop-color="#4a3524" stop-opacity="0.95"/>
+    <stop offset="100%" stop-color="#0c0a12"/>
+  </radialGradient>
+  <linearGradient id="stone" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#b7987a"/>
+    <stop offset="60%" stop-color="#8c6e53"/>
+    <stop offset="100%" stop-color="#5d4633"/>
+  </linearGradient>
+  <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#c99f6b"/>
+    <stop offset="100%" stop-color="#84603c"/>
+  </linearGradient>
+  <linearGradient id="mantle" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#2f5382"/>
+    <stop offset="55%" stop-color="#1f3c66"/>
+    <stop offset="100%" stop-color="#12233f"/>
+  </linearGradient>
+  <linearGradient id="tunic" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#faf1de"/>
+    <stop offset="100%" stop-color="#d9c6a1"/>
+  </linearGradient>
+  <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#fff6d8" stop-opacity="0.95"/>
+    <stop offset="55%" stop-color="#f3c765" stop-opacity="0.55"/>
+    <stop offset="100%" stop-color="#f3c765" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="wrap" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#efe6d2"/>
+    <stop offset="100%" stop-color="#a89777"/>
+  </linearGradient>
+  <clipPath id="roundClip"><circle cx="225" cy="225" r="225"/></clipPath>
+</defs>
+
+<g clip-path="url(#roundClip)">
+<!-- sky -->
+<rect x="0" y="0" width="450" height="450" fill="url(#sky)"/>
+<circle cx="225" cy="175" r="230" fill="url(#sunGlow)"/>
+
+<!-- light rays -->
+<g opacity="0.25" stroke="#ffe6ad" stroke-width="3">
+  <line x1="225" y1="175" x2="60" y2="10"/>
+  <line x1="225" y1="175" x2="150" y2="-10"/>
+  <line x1="225" y1="175" x2="300" y2="-10"/>
+  <line x1="225" y1="175" x2="390" y2="10"/>
+  <line x1="225" y1="175" x2="30" y2="90"/>
+  <line x1="225" y1="175" x2="420" y2="90"/>
+</g>
+
+<!-- distant hills -->
+<path d="M0,300 Q80,255 160,278 T330,270 T450,290 L450,340 L0,340 Z" fill="url(#hillsFar)" opacity="0.85"/>
+<path d="M0,325 Q100,285 220,305 T450,300 L450,360 L0,360 Z" fill="url(#hillsNear)" opacity="0.9"/>
+
+<!-- a few birds -->
+<g stroke="#2a2440" stroke-width="2.4" fill="none" opacity="0.65" stroke-linecap="round">
+  <path d="M70,70 q10,-10 20,0 q10,-10 20,0"/>
+  <path d="M120,45 q8,-8 16,0 q8,-8 16,0"/>
+  <path d="M340,60 q9,-9 18,0 q9,-9 18,0"/>
+</g>
+
+<!-- rocky tomb mound -->
+<path d="M70,340 C70,230 140,150 225,150 C310,150 380,230 380,340 L380,400 L70,400 Z" fill="url(#mound)"/>
+<path d="M70,340 C70,230 140,150 225,150 C160,175 105,255 100,340 Z" fill="#8f6c50" opacity="0.55"/>
+<path d="M380,340 C380,230 310,150 225,150 C290,175 345,255 350,340 Z" fill="#43301f" opacity="0.4"/>
+
+<!-- cave arch entrance -->
+<path d="M225,178 C186,178 158,214 158,262 L158,320 L292,320 L292,262 C292,214 264,178 225,178 Z" fill="url(#caveDark)"/>
+<path d="M225,178 C186,178 158,214 158,262 L158,320 L172,320 L172,264 C172,220 194,190 225,190 C256,190 278,220 278,264 L278,320 L292,320 L292,262 C292,214 264,178 225,178 Z" fill="#6b4c33"/>
+
+<!-- Lazarus emerging from the tomb, wrapped in grave cloths, off to one side within the arch -->
+<g opacity="0.96" transform="translate(-42,-8)">
+  <path d="M225,205 C213,205 204,214 204,228 L202,270 C202,282 212,289 225,289 C238,289 248,282 248,270 L246,228 C246,214 237,205 225,205 Z" fill="url(#wrap)"/>
+  <path d="M225,205 C216,205 209,212 208,222 C218,218 232,218 242,222 C241,212 234,205 225,205 Z" fill="#efe6d2"/>
+  <g stroke="#8f8064" stroke-width="2" opacity="0.55">
+    <line x1="207" y1="236" x2="243" y2="233"/>
+    <line x1="206" y1="252" x2="244" y2="249"/>
+    <line x1="205" y1="268" x2="245" y2="266"/>
+  </g>
+  <path d="M246,232 C256,236 261,248 256,258 C253,265 245,268 240,263" fill="none" stroke="#d9c6a1" stroke-width="8" stroke-linecap="round" opacity="0.85"/>
+</g>
+
+<!-- rolled-away stone -->
+<ellipse cx="358" cy="362" rx="44" ry="40" fill="url(#stone)"/>
+<path d="M322,352 Q358,330 392,350" stroke="#5a4530" stroke-width="3" fill="none" opacity="0.5"/>
+<path d="M320,370 Q358,390 394,368" stroke="#4a3826" stroke-width="3" fill="none" opacity="0.4"/>
+<ellipse cx="358" cy="362" rx="44" ry="40" fill="none" stroke="#3f2f20" stroke-width="2" opacity="0.35"/>
+
+<!-- ground -->
+<path d="M0,392 Q120,372 225,382 T450,388 L450,450 L0,450 Z" fill="url(#ground)"/>
+<path d="M0,392 Q120,372 225,382 T450,388" fill="none" stroke="#6b4c30" stroke-width="2" opacity="0.4"/>
+
+<!-- mourning figures, small, kept within the round display's safe area -->
+<g opacity="0.92">
+  <path d="M92,412 C84,398 88,382 104,382 C120,382 124,398 116,412 Z" fill="#7c3b45"/>
+  <circle cx="104" cy="376" r="8" fill="#c98f66"/>
+  <path d="M97,376 Q104,367 111,376 Q111,371 104,368 Q97,371 97,376 Z" fill="#3a2a1c"/>
+</g>
+<g opacity="0.92">
+  <path d="M340,414 C332,400 336,384 352,384 C368,384 372,400 364,414 Z" fill="#356156"/>
+  <circle cx="352" cy="378" r="8" fill="#c98f66"/>
+  <path d="M345,378 Q352,369 359,378 Q359,373 352,370 Q345,373 345,378 Z" fill="#2c2418"/>
+</g>
+
+<!-- lily at the base, resurrection symbol -->
+<g transform="translate(225,418)">
+  <path d="M0,0 L-3,22 M0,0 L3,22 M0,0 L0,24" stroke="#4f7a4a" stroke-width="2.2" fill="none"/>
+  <g fill="#fbf7ec">
+    <ellipse cx="-12" cy="-3" rx="7" ry="3.4" transform="rotate(-30 -12 -3)"/>
+    <ellipse cx="12" cy="-3" rx="7" ry="3.4" transform="rotate(30 12 -3)"/>
+    <ellipse cx="0" cy="-10" rx="7" ry="3.4" transform="rotate(90 0 -10)"/>
+  </g>
+  <circle cx="0" cy="-3" r="2.6" fill="#e8c15a"/>
+</g>
+
+<!-- ===== Jesus figure, torso fixed at the exact center pivot (225,225); arms are separate rotating hand layers ===== -->
+
+<!-- halo -->
+<circle cx="225" cy="196" r="46" fill="url(#halo)"/>
+<g stroke="#f3c765" stroke-width="1.3" opacity="0.55">
+  <circle cx="225" cy="196" r="34" fill="none"/>
+</g>
+
+<!-- mantle draping over both shoulders (covers where the hands emerge, at any angle) -->
+<path d="M225,222
+         C199,222 182,229 178,246
+         C172,266 168,290 170,316
+         C171,338 165,356 152,372
+         C146,380 148,388 158,388
+         L292,388
+         C302,388 304,380 298,372
+         C285,356 279,338 280,316
+         C282,290 278,266 272,246
+         C268,229 251,222 225,222 Z" fill="url(#mantle)"/>
+<path d="M225,222 C207,222 191,227 180,238 C194,233 209,231 225,231 C241,231 256,233 270,238 C259,227 243,222 225,222 Z" fill="#3c5f8f"/>
+<path d="M181,250 C173,278 171,304 174,330" stroke="#12233f" stroke-width="4" fill="none" opacity="0.5"/>
+<path d="M269,250 C277,278 279,304 276,330" stroke="#0e1c33" stroke-width="4" fill="none" opacity="0.55"/>
+<path d="M225,231 L224,384" stroke="#0e1c33" stroke-width="3" fill="none" opacity="0.3"/>
+<path d="M201,388 Q225,398 249,388" fill="none" stroke="#0e1c33" stroke-width="2" opacity="0.35"/>
+
+<!-- feet at the hem -->
+<ellipse cx="213" cy="392" rx="10" ry="6" fill="#e8dcc4"/>
+<ellipse cx="237" cy="392" rx="10" ry="6" fill="#e8dcc4"/>
+
+<!-- gold trim on the mantle collar -->
+<path d="M182,238 C196,229 210,225 225,225 C240,225 254,229 268,238" fill="none" stroke="#e3bd6a" stroke-width="4" stroke-linecap="round"/>
+
+<!-- inner tunic at the collar -->
+<path d="M204,222 C204,238 213,250 225,250 C237,250 246,238 246,222 C246,236 238,244 225,244 C212,244 204,236 204,222 Z" fill="url(#tunic)"/>
+
+<!-- neck + head -->
+<rect x="215" y="188" width="20" height="20" rx="8" fill="#c98f66"/>
+<circle cx="225" cy="178" r="26" fill="#ce9769"/>
+<path d="M199,172 C199,152 210,138 225,138 C240,138 251,152 251,172 C251,178 249,183 246,186 C247,170 240,150 225,150 C210,150 203,170 204,186 C201,183 199,178 199,172 Z" fill="#4a3222"/>
+<path d="M203,182 C201,206 205,222 212,232 C206,214 205,196 207,182 Z" fill="#4a3222"/>
+<path d="M247,182 C249,206 245,222 238,232 C244,214 245,196 243,182 Z" fill="#4a3222"/>
+<path d="M203,183 C196,196 195,214 203,230" fill="none" stroke="#3a2718" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+<path d="M247,183 C254,196 255,214 247,230" fill="none" stroke="#3a2718" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+<!-- simple serene face -->
+<path d="M211,177 q4,-4 8,0" stroke="#2e2013" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+<path d="M231,177 q4,-4 8,0" stroke="#2e2013" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+<path d="M223,183 q2,4 -1,7" stroke="#a9704a" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+<path d="M216,196 q9,6 18,0" stroke="#2e2013" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+
+</g>
+</svg>
+</body></html>
