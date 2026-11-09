@@ -34,6 +34,15 @@ Docker Compose (Postgres + Redis + API + web) was brought up and the e2e demo pa
 
 None of these were exercised with real keys or a real Ollama install in the build environment.
 
+## Platforms
+
+Server: Windows, macOS, Linux, Kali, Chromebook (Linux), Docker. App (PWA): Windows, macOS, Linux,
+ChromeOS, Android, iPhone/iPad. Terminal: the `plato` CLI (PowerShell, cmd, macOS/Linux shells).
+What was verified on which platform, and how, is listed in [PLATFORMS.md](PLATFORMS.md#what-is-verified-and-how).
+Windows and macOS are verified by CI on GitHub-hosted runners, not on a local machine. iOS Safari
+(WebKit) was not available to test. No native app-store builds exist; the installable web app
+covers phones and desktops.
+
 ## Phases
 
 ### Phase 1 — Functional foundation ✅

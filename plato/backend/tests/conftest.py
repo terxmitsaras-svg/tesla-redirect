@@ -20,7 +20,7 @@ from app.providers import registry as reg  # noqa: E402
 
 @pytest.fixture
 def client(tmp_path):
-    db.init_engine(f"sqlite+aiosqlite:///{tmp_path}/plato-test.db")
+    db.init_engine(f"sqlite+aiosqlite:///{(tmp_path / 'plato-test.db').as_posix()}")
     bus_mod._bus = None
     engine_mod._manager = None
     reg._REGISTRY.clear()

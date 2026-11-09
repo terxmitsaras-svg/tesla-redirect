@@ -1,8 +1,11 @@
 # PLATO — Running & deploying
 
+**Just want to use PLATO on your computer?** Use the one-command installers; see
+[PLATFORMS.md](PLATFORMS.md) (Windows/PowerShell, macOS, Linux, Kali, Chromebook, phones).
+
 ## Local development (no Docker)
 
-Requirements: Python 3.12+, Node 20.9+.
+Requirements: Python 3.11+, Node 20.9+.
 
 ```bash
 # API (SQLite by default, simulated provider enabled)
@@ -13,7 +16,7 @@ uvicorn app.main:app --reload --port 8000
 
 # Web
 cd plato/frontend
-cp .env.example .env.local        # NEXT_PUBLIC_API_URL=http://localhost:8000
+cp .env.example .env.local        # optional; by default the API is found at <page host>:8000
 npm install
 npm run dev                       # http://localhost:3000
 ```
@@ -29,13 +32,29 @@ docker compose up --build
 
 Web: http://localhost:3000 · API: http://localhost:8000 · API docs: http://localhost:8000/docs
 
-`NEXT_PUBLIC_API_URL` is baked into the web bundle at build time (compose build arg).
+`NEXT_PUBLIC_API_URL` is a build arg: empty (default) means "page host, port 8000", which works from
+other devices too; use `same-origin` behind `deploy/Caddyfile`, or an explicit URL.
+
+## HTTPS / single address (Caddy)
+
+`deploy/Caddyfile` serves PLATO on one HTTPS address: `/api/*` and `/ws/*` go to the API, everything
+else to the web app. Needed for installing the app on phones and for use beyond your LAN.
+
+```bash
+cd plato/frontend && NEXT_PUBLIC_API_URL=same-origin npm run build && cd ..
+./scripts/start.sh
+PLATO_SITE=plato.example.com caddy run --config deploy/Caddyfile
+```
+
+With `PLATO_ENV=production`, also set `PLATO_CORS_ORIGINS=https://plato.example.com` (same-origin
+requests don't need CORS, but other tools might).
 
 ## Tests
 
 ```bash
 cd plato/backend && ruff check app tests && pytest -q           # unit, API, orchestration, wire-level adapters
 cd plato/frontend && npm run typecheck && npm run build
+cd plato/cli && pytest -q                                          # CLI, against a real API process
 # Browser end-to-end (needs both servers running, simulated provider enabled):
 cd plato/frontend && WEB_URL=http://localhost:3000 npm run e2e
 ```

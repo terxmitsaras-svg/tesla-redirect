@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api, WS_URL } from "./api";
+import { api, wsUrl } from "./api";
 import type { PlatoEvent } from "./types";
 
 export type Partial = { agent_id: string; turn_id: string; text: string };
@@ -34,7 +34,7 @@ export function useProjectStream(projectId: string, onEvent: (e: PlatoEvent) => 
       try {
         const { ticket } = await api<{ ticket: string }>("/api/auth/ws-ticket", { method: "POST" });
         if (closed) return;
-        const ws = new WebSocket(`${WS_URL}/ws/projects/${projectId}?ticket=${encodeURIComponent(ticket)}`);
+        const ws = new WebSocket(`${wsUrl()}/ws/projects/${projectId}?ticket=${encodeURIComponent(ticket)}`);
         wsRef.current = ws;
         ws.onopen = () => {
           retry = 0;

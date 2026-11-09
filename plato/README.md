@@ -14,13 +14,32 @@ own connected agent runtimes work together as one team, under human control.
 * Every run is bounded by turn, message, time and **USD budget** limits, and loops are prevented.
 * SaaS-ready: plans and entitlements, Stripe billing, BYOK keys encrypted at rest, audit logs.
 
-## Quick start
+## Install (Windows, macOS, Linux, Kali, Chromebook)
+
+Needs Python 3.11+ and Node.js 20.9+ (the installers tell you how to get them on your OS).
+
+```powershell
+# Windows — PowerShell
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1
+.\scripts\start.ps1                 # add -Lan to use PLATO from phones on your Wi-Fi
+```
 
 ```bash
-# API
-cd backend && pip install -r requirements-dev.txt && uvicorn app.main:app --port 8000
-# Web (another terminal)
-cd frontend && npm install && npm run dev
+# macOS, Linux, Kali, Chromebook (Linux) — Terminal
+./scripts/install.sh
+./scripts/start.sh                  # add --lan to use PLATO from phones on your Wi-Fi
+```
+
+Then open http://localhost:3000 and click **Install** in the browser to get PLATO as an app.
+On **Android/iPhone/iPad**, open the address `start --lan` prints and add it to your home screen.
+From any terminal (PowerShell included) use the **`plato` CLI**: `plato run <project> "<objective>"`.
+Per-platform details: [docs/PLATFORMS.md](docs/PLATFORMS.md).
+
+Developing PLATO itself:
+
+```bash
+cd backend && pip install -r requirements-dev.txt && uvicorn app.main:app --reload --port 8000
+cd frontend && npm install && npm run dev        # another terminal
 ```
 
 Open http://localhost:3000, create an account and a project, then:
@@ -40,6 +59,8 @@ With Docker: `cp .env.example .env` (set the two secrets), then `docker compose 
 |---|---|
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System diagram, monorepo layout, orchestration engine, DB schema, security model |
 | [docs/PROTOCOL.md](docs/PROTOCOL.md) | Real-time event protocol, WebSocket actions, agent directives, External Agent Protocol, adapter contract, REST API |
+| [docs/PLATFORMS.md](docs/PLATFORMS.md) | Windows/PowerShell, macOS, Linux, Kali, Chromebook, Android, iOS: install, app install, phones, HTTPS |
+| [cli/README.md](cli/README.md) | The `plato` terminal client: commands, scripting with JSON, PowerShell examples |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Local, Docker, tests, live demo, production checklist, Stripe setup |
 | [docs/STATUS.md](docs/STATUS.md) | What is done, what is verified and how, what is simulated, what is next |
 

@@ -70,12 +70,16 @@ plato/
 │   │   └── api/             routers: auth, providers, projects (+agents, files), runs, billing, ws
 │   ├── tests/               45+ pytest tests incl. wire-level provider tests against a fake upstream
 │   └── scripts/live_demo.py §10 demo against LIVE OpenAI + Anthropic
-├── frontend/                Next.js 16 App Router + Tailwind
-│   ├── src/app/             /login, / (projects), /projects/[id], /providers, /billing
-│   ├── src/components/      AppShell, Brand, project/* (CommandRoom, AgentPanel, Panels)
-│   ├── src/lib/             api client, live stream hook, types
+├── frontend/                Next.js 16 App Router + Tailwind; installable PWA
+│   ├── src/app/             /login, / (projects), /projects/[id], /providers, /billing, manifest.ts
+│   ├── src/components/      AppShell, Brand, Pwa (service worker + Install app), project/*
+│   ├── src/lib/             api client (runtime API URL), live stream hook, types
+│   ├── public/              sw.js (service worker), offline.html, icons/
 │   └── e2e/demo.e2e.cjs     Playwright end-to-end demo check
-├── docs/                    this file, PROTOCOL.md, DEPLOYMENT.md, STATUS.md
+├── cli/                     `plato` terminal client (Python; Windows/macOS/Linux; PowerShell-friendly)
+├── scripts/                 install.sh / start.sh (macOS, Linux, Kali, ChromeOS) · install.ps1 / start.ps1 (Windows)
+├── deploy/Caddyfile         single-origin HTTPS reverse proxy (phones, remote access)
+├── docs/                    this file, PROTOCOL, DEPLOYMENT, PLATFORMS, STATUS
 ├── docker-compose.yml       postgres + redis + api + web
 └── .env.example
 ```

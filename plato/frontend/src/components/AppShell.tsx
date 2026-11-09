@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { api, getToken, setToken } from "@/lib/api";
 import type { User } from "@/lib/types";
 import { Mark, Wordmark } from "./Brand";
+import { InstallButton } from "./Pwa";
 
 const NAV = [
   { href: "/", label: "Projects" },
@@ -40,7 +41,7 @@ export default function AppShell({ children, wide = false }: { children: React.R
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-line bg-void/80 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-line bg-void/80 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pt-[env(safe-area-inset-top)] backdrop-blur">
         <div className={`mx-auto flex h-14 items-center gap-4 px-4 ${wide ? "max-w-[1600px]" : "max-w-6xl"}`}>
           <Link href="/" className="flex items-center gap-3">
             <Mark size={30} />
@@ -58,6 +59,7 @@ export default function AppShell({ children, wide = false }: { children: React.R
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-3">
+            <InstallButton />
             {user && (
               <span className="chip hidden sm:inline-flex">
                 <span className="h-1.5 w-1.5 rounded-full bg-cyan" />
@@ -97,7 +99,11 @@ export default function AppShell({ children, wide = false }: { children: React.R
           </nav>
         )}
       </header>
-      <main className={`mx-auto px-4 py-6 ${wide ? "max-w-[1600px]" : "max-w-6xl"}`}>{children}</main>
+      <main
+        className={`mx-auto px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] ${wide ? "max-w-[1600px]" : "max-w-6xl"}`}
+      >
+        {children}
+      </main>
     </div>
   );
 }

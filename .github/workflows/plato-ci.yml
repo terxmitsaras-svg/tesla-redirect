@@ -5,21 +5,38 @@ on:
     paths: ["plato/**", ".github/workflows/plato-ci.yml"]
   pull_request:
     paths: ["plato/**", ".github/workflows/plato-ci.yml"]
+  workflow_dispatch:
 
 jobs:
-  backend:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: plato/backend
+  # Unit, API, orchestration and CLI tests on every desktop OS.
+  tests:
+    name: tests (${{ matrix.os }}, py${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, python: "3.11" }
+          - { os: ubuntu-latest, python: "3.13" }
+          - { os: windows-latest, python: "3.12" }
+          - { os: macos-latest, python: "3.12" }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
-      - run: pip install -r requirements-dev.txt
-      - run: ruff check app tests
-      - run: pytest -q
+          python-version: ${{ matrix.python }}
+      - name: Install
+        run: |
+          python -m pip install -r plato/backend/requirements-dev.txt
+          python -m pip install ./plato/cli
+      - name: Lint
+        run: ruff check plato/backend/app plato/backend/tests plato/cli --config plato/backend/pyproject.toml
+      - name: Backend tests
+        working-directory: plato/backend
+        run: python -m pytest -q
+      - name: CLI tests
+        working-directory: plato/cli
+        run: python -m pytest -q
 
   frontend:
     runs-on: ubuntu-latest
@@ -36,3 +53,78 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run build
+
+  # The real installers and start scripts, then a full agent run through the `plato` CLI.
+  install-posix:
+    name: install.sh (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Install
+        run: ./plato/scripts/install.sh
+      - name: Start and run agents through the CLI
+        run: |
+          ./plato/scripts/start.sh > start.log 2>&1 &
+          for i in $(seq 1 90); do curl -sf http://127.0.0.1:8000/api/health && break; sleep 1; done
+          curl -sf -o /dev/null http://127.0.0.1:3000/login
+          curl -sf http://127.0.0.1:3000/manifest.webmanifest | grep -q '"display":"standalone"'
+          export PLATO_PW=correct-horse-battery PATH="$PWD/plato/.venv/bin:$PATH"
+          plato register --server http://127.0.0.1:8000 --email ci@plato.dev --password-env PLATO_PW
+          plato new-project CI
+          plato add-agent CI Architect --provider mock --model sim-fast
+          plato add-agent CI Developer --provider mock --model sim-fast
+          plato run CI "Design a URL shortener" --no-color
+          plato history CI --json | python -c "import json,sys; e=json.load(sys.stdin); assert sum(x['type']=='message.sent' for x in e) >= 2; assert e[-1]['data']['status']=='completed'"
+      - if: failure()
+        run: cat start.log || true
+
+  install-windows:
+    name: install.ps1 (Windows PowerShell 5.1)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Install
+        shell: powershell
+        run: .\plato\scripts\install.ps1
+      - name: Start and run agents through the CLI
+        shell: powershell
+        run: |
+          $p = Start-Process powershell -PassThru -RedirectStandardOutput start.log -RedirectStandardError start.err `
+            -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'plato\scripts\start.ps1'
+          $ok = $false
+          for ($i = 0; $i -lt 120 -and -not $ok; $i++) {
+            try { Invoke-RestMethod http://127.0.0.1:8000/api/health | Out-Null; $ok = $true } catch { Start-Sleep 1 }
+          }
+          if (-not $ok) { throw 'API did not start' }
+          for ($i = 0; $i -lt 60; $i++) {
+            try { if ((Invoke-WebRequest http://127.0.0.1:3000/login -UseBasicParsing).StatusCode -eq 200) { break } } catch { Start-Sleep 1 }
+          }
+          $plato = '.\plato\.venv\Scripts\plato.exe'
+          $env:PLATO_PW = 'correct-horse-battery'
+          & $plato register --server http://127.0.0.1:8000 --email ci@plato.dev --password-env PLATO_PW
+          if ($LASTEXITCODE) { throw 'register failed' }
+          & $plato new-project CI
+          & $plato add-agent CI Architect --provider mock --model sim-fast
+          & $plato add-agent CI Developer --provider mock --model sim-fast
+          & $plato run CI 'Design a URL shortener'
+          if ($LASTEXITCODE -ne 0) { throw "run exited $LASTEXITCODE" }
+          $events = & $plato history CI --json | ConvertFrom-Json
+          $msgs = @($events | Where-Object { $_.type -eq 'message.sent' }).Count
+          if ($msgs -lt 2 -or $events[-1].data.status -ne 'completed') { throw "unexpected history ($msgs messages)" }
+          "OK: $msgs messages, run completed"
+          Stop-Process -Id $p.Id -Force
+      - if: failure()
+        shell: powershell
+        run: Get-Content start.log, start.err -ErrorAction SilentlyContinue

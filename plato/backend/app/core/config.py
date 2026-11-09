@@ -8,9 +8,21 @@ from typing import Annotated
 from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
+# localhost, *.local (mDNS), ChromeOS Linux (penguin.linux.test), RFC 1918 private networks, and
+# 100.64.0.0/10 (CGNAT; used by Tailscale to reach a home server from a phone).
+LAN_ORIGIN_REGEX = (
+    r"^https?://(localhost|127\.0\.0\.1|\[::1\]|[a-z0-9-]+\.local|penguin\.linux\.test"
+    r"|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}"
+    r"|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}"
+    r"|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3})(:\d{1,5})?$"
+)
+
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="PLATO_", env_file=".env", extra="ignore")
+    # plato/.env (written by the install scripts / used by Docker) then backend/.env; later wins.
+    # env_ignore_empty: `KEY=` (as in .env.example) means "use the default", not an empty value.
+    model_config = SettingsConfigDict(env_prefix="PLATO_", env_file=("../.env", ".env"), extra="ignore",
+                                      env_ignore_empty=True, env_file_encoding="utf-8")
 
     env: str = "development"  # development | test | production
     database_url: str = "sqlite+aiosqlite:///./plato.db"
@@ -24,6 +36,10 @@ class Settings(BaseSettings):
     encryption_key: str | None = None
     # NoDecode: accept comma-separated values (or a JSON list) instead of requiring JSON.
     cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=lambda: ["http://localhost:3000"])
+    # Regex of extra allowed browser origins. Unset = in development, any localhost/LAN origin
+    # (phones and other computers on your network); in production, none. Auth uses bearer tokens,
+    # not cookies, so this cannot be used for cross-site request forgery.
+    cors_origin_regex: str | None = None
     admin_emails: Annotated[list[str], NoDecode] = Field(default_factory=list)
 
     # Providers
@@ -67,6 +83,14 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.env == "production"
+
+    @property
+    def effective_cors_origin_regex(self) -> str | None:
+        if self.cors_origin_regex is not None:
+            return self.cors_origin_regex or None
+        if self.is_production:
+            return None
+        return LAN_ORIGIN_REGEX
 
     @property
     def private_endpoints_allowed(self) -> bool:

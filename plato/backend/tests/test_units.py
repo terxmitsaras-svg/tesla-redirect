@@ -167,8 +167,36 @@ async def test_startup_adds_new_columns_to_existing_database(tmp_path):
                 "verified_at datetime, created_at datetime)")
     con.commit()
     con.close()
-    db.init_engine(f"sqlite+aiosqlite:///{path}")
+    db.init_engine(f"sqlite+aiosqlite:///{path.as_posix()}")
     await db.create_all()
     await db.engine().dispose()
     cols = [r[1] for r in sqlite3.connect(path).execute("pragma table_info(provider_credentials)")]
     assert "base_url" in cols
+
+
+def test_cors_allows_lan_origins_in_development_only(monkeypatch):
+    import re
+
+    from app.core.config import Settings
+
+    dev = Settings(_env_file=None)
+    rx = re.compile(dev.effective_cors_origin_regex)
+    for ok in ("http://192.168.1.20:3000", "http://10.0.0.5:3000", "http://172.20.1.2:3000",
+               "http://localhost:3000", "http://my-laptop.local:3000", "http://penguin.linux.test:3000",
+               "http://100.101.102.103:3000"):
+        assert rx.match(ok), ok
+    for bad in ("http://evil.com", "http://192.168.1.20.evil.com:3000", "http://172.32.0.1:3000",
+                "https://8.8.8.8", "http://100.128.0.1:3000"):
+        assert not rx.match(bad), bad
+    monkeypatch.setenv("PLATO_ENV", "production")
+    assert Settings(_env_file=None).effective_cors_origin_regex is None
+
+
+def test_env_example_loads_cleanly():
+    """A .env copied from .env.example (empty `KEY=` lines) must not break startup."""
+    from pathlib import Path
+
+    from app.core.config import Settings
+
+    s = Settings(_env_file=str(Path(__file__).resolve().parents[2] / ".env.example"))
+    assert s.allow_private_endpoints is None and s.stripe_secret_key is None and s.encryption_key is None

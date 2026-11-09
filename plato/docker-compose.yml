@@ -41,7 +41,9 @@ services:
     build:
       context: ./frontend
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:8000
+        # Empty = the browser uses the page's host on port 8000, so phones on your network work too.
+        # Set to "same-origin" behind deploy/Caddyfile, or to a full https://api.example.com URL.
+        NEXT_PUBLIC_API_URL: ""
     depends_on: [api]
     ports: ["3000:3000"]
 

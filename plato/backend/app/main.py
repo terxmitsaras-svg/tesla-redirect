@@ -41,7 +41,9 @@ def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(title="PLATO API", version="0.1.0", lifespan=lifespan,
                   docs_url=None if settings.is_production else "/docs")
-    app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_credentials=True,
+    # Bearer-token auth (no cookies), so credentials mode is off.
+    app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins,
+                       allow_origin_regex=settings.effective_cors_origin_regex, allow_credentials=False,
                        allow_methods=["*"], allow_headers=["*"])
 
     @app.middleware("http")
