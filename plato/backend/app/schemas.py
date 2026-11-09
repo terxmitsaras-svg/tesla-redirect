@@ -40,10 +40,19 @@ class TokenOut(BaseModel):
 
 # ---- providers / credentials
 class CredentialIn(BaseModel):
+    """A provider connection: an API key and/or a base URL (Ollama host, custom server…)."""
+
     provider: str
-    api_key: str = Field(min_length=8, max_length=500)
+    api_key: str = Field(default="", max_length=500)
+    base_url: str | None = Field(default=None, max_length=512)
     label: str = Field(default="default", max_length=64)
     verify: bool = True
+
+    @field_validator("base_url")
+    @classmethod
+    def _strip(cls, v: str | None) -> str | None:
+        v = (v or "").strip().rstrip("/")
+        return v or None
 
 
 class CredentialOut(ORM):
@@ -51,6 +60,7 @@ class CredentialOut(ORM):
     provider: str
     label: str
     key_hint: str
+    base_url: str | None
     verified_at: datetime | None
     created_at: datetime
 

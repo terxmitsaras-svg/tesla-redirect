@@ -29,6 +29,9 @@ services:
     environment:
       PLATO_DATABASE_URL: postgresql+asyncpg://plato:plato@postgres:5432/plato
       PLATO_REDIS_URL: redis://redis:6379/0
+    # Lets the API reach model servers on your machine, e.g. Ollama at
+    # http://host.docker.internal:11434/v1 (set that as the Ollama base URL under Providers).
+    extra_hosts: ["host.docker.internal:host-gateway"]
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }

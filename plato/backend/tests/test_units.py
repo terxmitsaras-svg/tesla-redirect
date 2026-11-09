@@ -72,7 +72,7 @@ def _sse_transport(captured: dict):
 
 
 async def test_external_agent_protocol(monkeypatch):
-    monkeypatch.setattr(get_settings(), "allow_private_external_agents", True)
+    monkeypatch.setattr(get_settings(), "allow_private_endpoints", True)
     captured: dict = {}
     adapter = ExternalAgentAdapter(transport=_sse_transport(captured))
     req = GenerationRequest(model="default", system="sys", messages=[ChatMessage("user", "hi")])
@@ -83,7 +83,7 @@ async def test_external_agent_protocol(monkeypatch):
 
 
 async def test_external_agent_error_event(monkeypatch):
-    monkeypatch.setattr(get_settings(), "allow_private_external_agents", True)
+    monkeypatch.setattr(get_settings(), "allow_private_endpoints", True)
     t = httpx.MockTransport(lambda r: httpx.Response(200, text='data: {"type":"error","message":"boom"}\n\n'))
     adapter = ExternalAgentAdapter(transport=t)
     req = GenerationRequest(model="d", system="s", messages=[ChatMessage("user", "x")])
@@ -95,7 +95,7 @@ async def test_external_agent_error_event(monkeypatch):
 @pytest.mark.parametrize("url", ["http://example.com/a", "https://127.0.0.1/a", "https://10.0.0.5/x",
                                  "https://169.254.169.254/latest", "ftp://x.com", "https://localhost/a"])
 async def test_ssrf_guard_blocks_unsafe_targets(url, monkeypatch):
-    monkeypatch.setattr(get_settings(), "allow_private_external_agents", False)
+    monkeypatch.setattr(get_settings(), "allow_private_endpoints", False)
     with pytest.raises(ProviderError):
         await validate_external_url(url)
 
@@ -128,3 +128,47 @@ def test_settings_accept_csv_and_json_lists(monkeypatch):
     monkeypatch.setenv("PLATO_ADMIN_EMAILS", '["root@plato.dev"]')
     s = Settings(_env_file=None)
     assert s.cors_origins == ["http://a.com", "http://b.com"] and s.admin_emails == ["root@plato.dev"]
+
+
+async def test_netguard_blocks_private_hosts_in_production(monkeypatch):
+    from app.core.netguard import UnsafeURLError, validate_endpoint_url
+
+    s = get_settings()
+    monkeypatch.setattr(s, "env", "production")
+    monkeypatch.setattr(s, "allow_private_endpoints", None)
+    for url in ("https://127.0.0.1/v1", "https://192.168.1.10/v1", "http://example.com/v1"):
+        with pytest.raises(UnsafeURLError):
+            await validate_endpoint_url(url)
+    monkeypatch.setattr(s, "env", "development")
+    await validate_endpoint_url("http://localhost:11434/v1")  # local Ollama is fine in development
+
+
+def test_pricing_provider_scoped_override(monkeypatch):
+    from app.orchestrator import pricing
+
+    monkeypatch.setattr(get_settings(), "model_pricing_json", '{"groq:llama3": [0.1, 0.2], "llama3": [1, 2]}')
+    pricing._prices.cache_clear()
+    try:
+        assert pricing.price_for("groq", "llama3") == (0.1, 0.2, True)
+        assert pricing.price_for("together", "llama3") == (1.0, 2.0, True)
+    finally:
+        pricing._prices.cache_clear()
+
+
+async def test_startup_adds_new_columns_to_existing_database(tmp_path):
+    import sqlite3
+
+    from app import db
+
+    path = tmp_path / "old.db"
+    con = sqlite3.connect(path)  # schema as shipped before base_url existed
+    con.execute("create table provider_credentials (id varchar(32) primary key, owner_id varchar(32), "
+                "provider varchar(32), label varchar(64), encrypted_key text, key_hint varchar(16), "
+                "verified_at datetime, created_at datetime)")
+    con.commit()
+    con.close()
+    db.init_engine(f"sqlite+aiosqlite:///{path}")
+    await db.create_all()
+    await db.engine().dispose()
+    cols = [r[1] for r in sqlite3.connect(path).execute("pragma table_info(provider_credentials)")]
+    assert "base_url" in cols

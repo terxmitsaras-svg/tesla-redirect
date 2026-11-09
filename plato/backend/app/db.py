@@ -41,11 +41,28 @@ def sessionmaker() -> async_sessionmaker[AsyncSession]:
     return _sessionmaker  # type: ignore[return-value]
 
 
+# Columns added after the first release. ``create_all`` never alters existing tables, so these are
+# added in place on startup. Replace with Alembic migrations before production schema changes.
+_ADDITIVE_COLUMNS: list[tuple[str, str, str]] = [
+    ("provider_credentials", "base_url", "VARCHAR(512)"),
+]
+
+
+def _add_missing_columns(sync_conn) -> None:
+    from sqlalchemy import inspect, text
+
+    insp = inspect(sync_conn)
+    for table, column, ddl in _ADDITIVE_COLUMNS:
+        if insp.has_table(table) and column not in {c["name"] for c in insp.get_columns(table)}:
+            sync_conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
+
+
 async def create_all() -> None:
     from . import models  # noqa: F401  (register tables)
 
     async with engine().begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(_add_missing_columns)
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:

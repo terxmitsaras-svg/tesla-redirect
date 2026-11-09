@@ -5,7 +5,7 @@ import json
 from functools import lru_cache
 from typing import Annotated
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -28,7 +28,12 @@ class Settings(BaseSettings):
 
     # Providers
     enable_mock_provider: bool = True  # offline, clearly-labelled simulated provider
-    allow_private_external_agents: bool = False  # allow external agent URLs on private networks (local dev)
+    # Allow provider/agent URLs on localhost or private networks (needed for local Ollama / LM Studio).
+    # Unset = allowed outside production, blocked in production (SSRF protection for multi-tenant SaaS).
+    allow_private_endpoints: bool | None = Field(
+        default=None,
+        validation_alias=AliasChoices("PLATO_ALLOW_PRIVATE_ENDPOINTS", "PLATO_ALLOW_PRIVATE_EXTERNAL_AGENTS"),
+    )
     platform_openai_key: str | None = None
     platform_anthropic_key: str | None = None
     platform_xai_key: str | None = None
@@ -62,6 +67,12 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.env == "production"
+
+    @property
+    def private_endpoints_allowed(self) -> bool:
+        if self.allow_private_endpoints is not None:
+            return self.allow_private_endpoints
+        return not self.is_production
 
     def platform_key(self, provider: str) -> str | None:
         return {

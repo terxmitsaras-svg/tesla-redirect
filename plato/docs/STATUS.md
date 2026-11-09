@@ -24,6 +24,16 @@ production. The identical pipeline with the real Claude + OpenAI SDKs is covered
 
 Docker Compose (Postgres + Redis + API + web) was brought up and the e2e demo passed against it.
 
+## Provider coverage
+
+| Providers | Verified how |
+|---|---|
+| OpenAI, Anthropic, Gemini | wire-level tests against a local server speaking each provider's streaming format |
+| xAI, Hugging Face, Mistral, Groq, DeepSeek, Together, OpenRouter, LM Studio, custom | shared OpenAI-compatible adapter, wire-tested against a strict compatible server (no OpenAI-only params, no usage → estimated) and Groq's `x_groq.usage`; base URLs checked to exist (401 without key / public model list for HF and OpenRouter) |
+| Ollama | parameters taken from Ollama's OpenAI-compatibility docs; tested with a fake Ollama-style server through the API and in the browser (connect custom host → agent → run) |
+
+None of these were exercised with real keys or a real Ollama install in the build environment.
+
 ## Phases
 
 ### Phase 1 — Functional foundation ✅

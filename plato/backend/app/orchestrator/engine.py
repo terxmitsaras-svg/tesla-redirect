@@ -452,13 +452,16 @@ class RunRuntime:
                 await self.emit(P.TURN_DELTA, {"turn_id": a.turn_id, "text": ev.text}, agent_id=a.id)
             elif ev.type == "usage":
                 usage = {"input_tokens": ev.input_tokens, "output_tokens": ev.output_tokens,
-                         "stop_reason": ev.stop_reason}
+                         "stop_reason": ev.stop_reason, "tokens_estimated": ev.estimated}
         return "".join(chunks), usage
 
     async def _record_usage(self, a: AgentRuntime, usage: dict[str, Any]) -> None:
-        cost, known = cost_usd(a.provider, a.model, usage["input_tokens"], usage["output_tokens"])
+        if a.billed_to in ("simulated", "self_hosted"):
+            cost, known = 0.0, True  # no per-token API charge (runs offline / on the user's hardware)
+        else:
+            cost, known = cost_usd(a.provider, a.model, usage["input_tokens"], usage["output_tokens"])
         usage["cost_usd"] = round(cost, 6)
-        usage["cost_is_estimate"] = a.billed_to != "simulated"  # provider invoices are authoritative
+        usage["cost_is_estimate"] = a.billed_to not in ("simulated", "self_hosted")  # invoices are authoritative
         usage["price_known"] = known
         self.cost_usd += cost
         self.input_tokens += usage["input_tokens"]
@@ -467,7 +470,8 @@ class RunRuntime:
             s.add(UsageRecord(owner_id=self.owner_id, run_id=self.run_id, agent_id=a.id, provider=a.provider,
                               model=a.model, input_tokens=usage["input_tokens"],
                               output_tokens=usage["output_tokens"], cost_usd=cost,
-                              cost_is_estimate=not known, billed_to=a.billed_to))
+                              cost_is_estimate=not known or bool(usage.get("tokens_estimated")),
+                              billed_to=a.billed_to))
             if a.billed_to == "platform":
                 user = await s.get(User, self.owner_id)
                 if user:
@@ -633,6 +637,7 @@ class RunManager:
             for a, member in zip(agents, team, strict=True):
                 adapter = get_adapter(a.provider)
                 api_key: str | None = None
+                endpoint = a.external_url
                 billed = "byok"
                 if adapter.info.integration == "simulated":
                     billed = "simulated"
@@ -643,17 +648,22 @@ class RunManager:
                     cred = creds.get(a.credential_id or "") or next(
                         (c for c in creds.values() if c.provider == a.provider), None)
                     if cred:
-                        api_key = decrypt_secret(cred.encrypted_key)
+                        api_key = decrypt_secret(cred.encrypted_key) or None
+                        endpoint = cred.base_url
+                    elif not adapter.info.requires_api_key:
+                        pass  # keyless runtime on its default URL (e.g. local Ollama)
                     elif settings.platform_key(a.provider) and credits > 0:
                         api_key, billed = settings.platform_key(a.provider), "platform"
                     else:
                         raise RunError(f"Agent '{a.name}' has no {adapter.info.display_name} API key. "
                                        f"Connect the provider first.")
+                    if adapter.info.self_hosted:
+                        billed = "self_hosted"
                 can_message = _permissions(policy, member, team)
                 file_ctx = [(f.path, f.content[:MAX_FILE_CHARS]) for f in files]
                 rt = AgentRuntime(
                     id=a.id, name=a.name, role=a.role, provider=a.provider, model=a.model, parent_id=a.parent_id,
-                    instructions=a.instructions, adapter=adapter, api_key=api_key, endpoint=a.external_url,
+                    instructions=a.instructions, adapter=adapter, api_key=api_key, endpoint=endpoint,
                     billed_to=billed, can_message=can_message,
                 )
                 rt.system_prompt = build_system_prompt(

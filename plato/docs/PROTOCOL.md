@@ -103,7 +103,8 @@ data: [DONE]
 ```
 
 The agent replies in the same directive language as hosted agents. Endpoints must be `https` and
-publicly routable unless `PLATO_ALLOW_PRIVATE_EXTERNAL_AGENTS=true` (local development).
+publicly routable in production unless `PLATO_ALLOW_PRIVATE_ENDPOINTS=true`; private addresses are
+allowed by default in development.
 
 ## 5. Provider adapter contract (`app/providers/base.py`)
 
@@ -131,7 +132,7 @@ Interactive docs at `http://localhost:8000/docs` (disabled in production).
 | Area | Endpoints |
 |---|---|
 | Auth | `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/ws-ticket` |
-| Providers | `GET /api/providers`, `GET /api/providers/{p}/models`, `GET/POST /api/credentials`, `DELETE /api/credentials/{id}` |
+| Providers | `GET /api/providers` (catalogue: category, base-URL mode, key requirement), `GET /api/providers/{p}/models`, `GET/POST /api/credentials` (`{provider, api_key?, base_url?, label?}`), `DELETE /api/credentials/{id}` |
 | Projects | `GET/POST /api/projects`, `GET/PATCH/DELETE /api/projects/{id}`, `GET/PUT /api/projects/{id}/files`, `DELETE …/files/{fid}` |
 | Agents | `GET/POST /api/projects/{id}/agents`, `PATCH/DELETE /api/agents/{id}` |
 | Runs | `POST/GET /api/projects/{id}/runs`, `GET /api/runs/{id}`, `GET /api/runs/{id}/events?after_seq=`, `GET /api/projects/{id}/tasks`, `POST /api/runs/{id}/messages`, `POST /api/runs/{id}/{pause\|resume\|stop}`, `POST /api/runs/{id}/agents/{aid}/interrupt`, `POST /api/runs/{id}/tasks/{tid}/{approve\|reject}` |

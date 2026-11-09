@@ -95,6 +95,39 @@ async def openai_models(request: Request):
                                        {"id": "model-a", "object": "model", "created": 0, "owned_by": "x"}]}
 
 
+# ---------------- Other OpenAI-compatible servers
+# "strict": like many compatible servers — rejects OpenAI-only params and reports no usage.
+# "ollama": documents max_tokens + stream_options.include_usage.
+# "groq":   reports usage in a non-standard x_groq.usage field.
+@app.post("/compat/{flavor}/v1/chat/completions")
+async def compat_chat(flavor: str, request: Request):
+    body = await request.json()
+    CAPTURED[flavor] = {"body": body, "auth": request.headers.get("authorization")}
+    if flavor not in ("strict", "ollama", "groq"):
+        return JSONResponse({"error": {"message": "unknown"}}, status_code=404)
+    if "max_completion_tokens" in body:
+        return JSONResponse({"error": {"message": "unknown field max_completion_tokens"}}, status_code=400)
+    if flavor != "ollama" and "stream_options" in body:
+        return JSONResponse({"error": {"message": "unknown field stream_options"}}, status_code=400)
+    base = {"id": "c1", "object": "chat.completion.chunk", "created": 0, "model": body["model"]}
+    events: list = [
+        (None, {**base, "choices": [{"index": 0, "delta": {"role": "assistant", "content": "Local "}}]}),
+        (None, {**base, "choices": [{"index": 0, "delta": {"content": "model reply"}, "finish_reason": "stop"}]}),
+    ]
+    if flavor == "ollama":
+        events.append((None, {**base, "choices": [], "usage": {"prompt_tokens": 11, "completion_tokens": 3,
+                                                              "total_tokens": 14}}))
+    if flavor == "groq":
+        events[-1][1]["x_groq"] = {"id": "req_1", "usage": {"prompt_tokens": 9, "completion_tokens": 2}}
+    events.append((None, "[DONE]"))
+    return _sse(events)
+
+
+@app.get("/compat/{flavor}/v1/models")
+async def compat_models(flavor: str):
+    return {"object": "list", "data": [{"id": "llama3.2", "object": "model", "created": 0, "owned_by": "library"}]}
+
+
 # ---------------- Gemini
 @app.post("/gemini/{version}/models/{model_action}")
 async def gemini_stream(version: str, model_action: str, request: Request):

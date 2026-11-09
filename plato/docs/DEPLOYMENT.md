@@ -50,6 +50,29 @@ python plato/backend/scripts/live_demo.py --api http://localhost:8000
 Or in the UI: **Providers** → paste keys (verified live) → open a project → add an agent on
 Anthropic Claude and one on OpenAI → enter an objective → **Start run**.
 
+## Open-source & local models
+
+**Ollama**: `ollama serve`, `ollama pull llama3.2`. Ollama works with no setup if the API runs on
+the same machine (default `http://localhost:11434/v1`). If Ollama runs elsewhere, open **Providers → Ollama**
+and set the base URL:
+
+| API runs… | Base URL |
+|---|---|
+| directly on your machine | `http://localhost:11434/v1` (default) |
+| in Docker Compose, Ollama on the host | `http://host.docker.internal:11434/v1` |
+| Ollama on another LAN machine | `http://192.168.x.x:11434/v1` (start Ollama with `OLLAMA_HOST=0.0.0.0`) |
+| Ollama Cloud | `https://ollama.com/v1` + API key |
+
+**LM Studio**: start the local server (default `http://localhost:1234/v1`).
+**vLLM / llama.cpp / LocalAI / TGI / LiteLLM**: use *Custom OpenAI-compatible server* with the
+server's `/v1` base URL.
+**Hugging Face**: create a token with "Make calls to Inference Providers" permission and paste it
+under Providers. Model ids look like `meta-llama/Llama-3.3-70B-Instruct` (the picker lists live models).
+
+Private/loopback URLs are accepted in development and refused in production unless
+`PLATO_ALLOW_PRIVATE_ENDPOINTS=true` (only for single-tenant installs: in multi-tenant SaaS it would let
+users make the server call your internal network).
+
 ## Production checklist
 
 | Item | Setting |
@@ -64,6 +87,7 @@ Anthropic Claude and one on OpenAI → enter an objective → **Start run**.
 | Scaling | runs execute in the API process that started them — use **sticky sessions** (e.g. by project) when running more than one API replica, until execution moves to workers |
 | Stripe | create Products/Prices; set each plan's `stripe_price_id` via `PATCH /api/admin/plans/{code}`; set `PLATO_STRIPE_SECRET_KEY`, `PLATO_STRIPE_WEBHOOK_SECRET`; point a webhook at `/api/billing/webhook` for `checkout.session.completed`, `customer.subscription.created/updated/deleted`, `invoice.paid`; enable the Customer Portal for plan changes. Optional usage meter: `PLATO_STRIPE_METER_EVENT_NAME` (value = USD × 10 000). |
 | Admins | `PLATO_ADMIN_EMAILS=you@company.com` (granted at sign-up) |
-| Pricing | add real per-model prices for non-Anthropic models via `PLATO_MODEL_PRICING_JSON`, otherwise a fallback estimate ($5/$20 per MTok) is used and flagged |
+| Pricing | add real per-model prices for non-Anthropic models via `PLATO_MODEL_PRICING_JSON` (`"provider:model"` keys), otherwise a fallback estimate ($5/$20 per MTok) is used and flagged. Self-hosted runtimes cost $0 |
+| Private endpoints | leave `PLATO_ALLOW_PRIVATE_ENDPOINTS` unset (blocked) for multi-tenant SaaS |
 | Rate limiting | in-process limiter; put an edge limiter (load balancer / API gateway) in front for multi-instance deployments |
 | Migrations | tables are created at startup; adopt Alembic before the first schema change in production |

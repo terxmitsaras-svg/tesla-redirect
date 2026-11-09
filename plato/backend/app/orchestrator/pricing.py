@@ -41,10 +41,15 @@ def _prices() -> dict[str, tuple[float, float]]:
 
 
 def price_for(provider: str, model: str) -> tuple[float, float, bool]:
-    """Return (input $/MTok, output $/MTok, is_known_price)."""
+    """Return (input $/MTok, output $/MTok, is_known_price).
+
+    ``PLATO_MODEL_PRICING_JSON`` keys may be ``"provider:model"`` (preferred, since the same open
+    model is priced differently by Groq, Together, Hugging Face…) or a bare ``"model"``.
+    """
     if provider == "mock":
         return 0.0, 0.0, True
-    p = _prices().get(model)
+    prices = _prices()
+    p = prices.get(f"{provider}:{model}") or prices.get(model)
     if p:
         return p[0], p[1], True
     return FALLBACK_PRICE[0], FALLBACK_PRICE[1], False

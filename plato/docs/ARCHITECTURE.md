@@ -31,6 +31,7 @@ flowchart LR
     AN["Anthropic Claude (anthropic SDK)"]
     XA["xAI Grok (OpenAI-compatible)"]
     GE["Google Gemini (google-genai SDK)"]
+    OC["OpenAI-compatible profiles<br/>Hugging Face · Mistral · Groq · DeepSeek<br/>Together · OpenRouter · Ollama · LM Studio<br/>custom vLLM / llama.cpp / LocalAI / LiteLLM"]
     EX["External agent<br/>(PLATO Agent Protocol v1)"]
     MO["Simulated (offline)"]
   end
@@ -133,9 +134,27 @@ disabled). Mode = prompt guidance + a communication policy enforced by the engin
 
 Two integration methods, distinguished in data (`agents.kind`) and UI:
 
-* **Hosted agents** — PLATO calls the provider API with the user's BYOK key (or a platform key
+* **Hosted agents** — PLATO calls a model API with the user's BYOK key (or a platform key
   that debits usage credits). Adapters use the official SDKs: `openai`, `anthropic`,
-  `google-genai`; xAI Grok uses the OpenAI-compatible endpoint `https://api.x.ai/v1`.
+  `google-genai`.
+
+| Category | Providers | Base URL | Key |
+|---|---|---|---|
+| Frontier labs | OpenAI, Anthropic Claude, xAI Grok, Google Gemini | fixed | required |
+| Open models, clouds & routers | Hugging Face Inference Providers (`router.huggingface.co/v1`), Mistral, Groq, DeepSeek, Together AI, OpenRouter | fixed | required |
+| Local & self-hosted | Ollama (`localhost:11434/v1`, or Ollama Cloud `ollama.com/v1`), LM Studio (`localhost:1234/v1`) | default, overridable | optional |
+| Custom | any OpenAI-compatible server: vLLM, llama.cpp server, LocalAI, TGI, LiteLLM proxy… | required | optional |
+
+Everything except Anthropic and Gemini goes through one `OpenAICompatibleAdapter` configured by a
+`CompatProfile`: `max_completion_tokens` (OpenAI, xAI) vs `max_tokens` (everyone else), and whether
+to request `stream_options.include_usage` (only where documented: OpenAI, xAI, Ollama). Usage is
+read from any chunk that carries it (including Groq's `x_groq.usage`); if a server reports none,
+tokens are estimated (~4 chars/token) and flagged `tokens_estimated`. Self-hosted runtimes are
+billed `self_hosted` at $0; the custom server is costed (it may front a paid API).
+
+A saved *connection* (`provider_credentials`) holds an encrypted key and/or a `base_url`. Every
+user-supplied URL passes the SSRF guard (`core/netguard.py`): https + public addresses only, unless
+private endpoints are allowed (default outside production).
 * **Connected external agents** — a runtime the user operates (a local coding agent, an
   SDK-based agent service) that implements the small *PLATO External Agent Protocol v1*
   (docs/PROTOCOL.md §4). PLATO sends the conversation and streams back text.
@@ -170,7 +189,7 @@ a `refusal` stop reason on any model surfaces as a non-retryable error.
 |---|---|---|
 | `users` | email (unique), password_hash (bcrypt), plan_code, subscription_status, stripe ids, credits_usd, is_admin | |
 | `plans` | code PK, price_usd_month, stripe_price_id, entitlements JSON | seeded; admin-editable |
-| `provider_credentials` | owner_id, provider, label, encrypted_key (Fernet), key_hint, verified_at | unique(owner, provider, label); key never returned |
+| `provider_credentials` | owner_id, provider, label, encrypted_key (Fernet), key_hint, base_url, verified_at | a "connection"; unique(owner, provider, label); key never returned |
 | `projects` | owner_id, name, shared_context, settings JSON (mode, limits, approvals) | |
 | `agents` | owner_id, project_id, parent_id, name, role, instructions, kind, provider, model, credential_id, external_url | unique(project, name) |
 | `runs` | owner_id, project_id, objective, mode, status, stop_reason, limits JSON, cost/tokens | |
@@ -180,7 +199,8 @@ a `refusal` stop reason on any model surfaces as a non-retryable error.
 | `usage_records` | owner_id, run_id, agent_id, provider, model, tokens, cost_usd, cost_is_estimate, billed_to | billing source |
 | `audit_logs` | owner_id, actor, action, target, details, ip | security & billing events |
 
-Tables are created on startup (`create_all`). Alembic migrations are a Phase 5 item.
+Tables are created on startup (`create_all`); columns added since the first release are added in
+place (`db._ADDITIVE_COLUMNS`). Alembic migrations are a Phase 5 item.
 
 ## 8. Security model
 
@@ -195,6 +215,6 @@ Tables are created on startup (`create_all`). Alembic migrations are a Phase 5 i
 | Rate limiting | sliding-window per IP (auth), per user (run starts, WS actions) |
 | Audit logging | auth, credentials, projects, agents, runs, controls, approvals, admin, Stripe |
 | Prompt-injection controls | trust rules in every system prompt; teammate messages and files wrapped as `<agent_message>`/`<shared_file>` data; directive and envelope tags inside untrusted text are neutralised so injected text cannot forge senders or smuggle directives; recipients/permissions enforced by code, not the model |
-| SSRF | external agent URLs must be https and resolve to public addresses (dev override flag) |
+| SSRF | user-supplied URLs (external agents, Ollama/LM Studio hosts, custom servers) must be https and public in production; private/loopback allowed in development or with `PLATO_ALLOW_PRIVATE_ENDPOINTS=true`; no credentials in URLs |
 | Tool execution | agents have no tools that touch files, shells or networks in this version; sandboxed code execution is Phase 4 |
 | Production guardrails | app refuses to boot in production with default secrets or with the simulated provider enabled |

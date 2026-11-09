@@ -139,7 +139,7 @@ def test_byok_credentials_are_verified_encrypted_and_hidden(client, fake_upstrea
     register_adapter(AnthropicAdapter(base_url=fake_upstream.url))
     h = register(client)
     r = client.post("/api/credentials", headers=h, json={"provider": "anthropic", "api_key": BAD_KEY})
-    assert r.status_code == 400 and "verification failed" in r.json()["detail"]
+    assert r.status_code == 400 and "verification failed" in r.json()["detail"].lower()
 
     secret = "sk-ant-test-abcdef123456"
     r = client.post("/api/credentials", headers=h, json={"provider": "anthropic", "api_key": secret})
@@ -163,7 +163,8 @@ def test_byok_credentials_are_verified_encrypted_and_hidden(client, fake_upstrea
 def test_hosted_claude_and_openai_agents_run_through_real_sdks(client, fake_upstream):
     """Same pipeline as production: BYOK key decrypted → official SDK → HTTP streaming → events."""
     register_adapter(AnthropicAdapter(base_url=fake_upstream.url))
-    register_adapter(OpenAICompatibleAdapter(openai_adapter().info, base_url=fake_upstream.url + "/openai/v1"))
+    register_adapter(OpenAICompatibleAdapter(openai_adapter().info, base_url=fake_upstream.url + "/openai/v1",
+                                             profile=openai_adapter().profile))
     h = register(client)
     for prov in ("anthropic", "openai"):
         assert client.post("/api/credentials", headers=h,
@@ -266,3 +267,68 @@ def test_admin_can_edit_plan_prices(client, tmp_path):
     assert r.json()["entitlements"]["max_models"] == 4  # merged, not replaced
     logs = client.get("/api/audit-logs", headers=h).json()
     assert any(entry["action"] == "admin.plan.update" for entry in logs)
+
+
+# ------------------------------------------------------------------ open-model & local providers
+def test_ollama_connection_with_custom_host_runs_agents_at_zero_cost(client, fake_upstream):
+    h = register(client)
+    providers = {p["id"]: p for p in client.get("/api/providers", headers=h).json()}
+    assert providers["ollama"]["category"] == "local" and providers["ollama"]["connected"]  # keyless default
+    assert providers["ollama"]["default_base_url"] == "http://localhost:11434/v1"
+    assert providers["huggingface"]["category"] == "open" and not providers["huggingface"]["connected"]
+
+    # Connect Ollama on a non-default host (here: the fake server), no API key.
+    r = client.post("/api/credentials", headers=h,
+                    json={"provider": "ollama", "base_url": fake_upstream.url + "/compat/ollama/v1/"})
+    assert r.status_code == 201, r.text
+    assert r.json()["base_url"] == fake_upstream.url + "/compat/ollama/v1" and r.json()["key_hint"] == "no key"
+    assert client.get("/api/providers/ollama/models", headers=h).json() == {"models": ["llama3.2"], "live": True}
+
+    pid = make_project(client, h)
+    a = add_agent(client, h, pid, "Local", provider="ollama", model="llama3.2")
+    run_id = client.post(f"/api/projects/{pid}/runs", headers=h, json={"objective": "hi"}).json()["id"]
+    run = wait_run_done(client, h, run_id)
+    assert run["status"] == "completed" and run["cost_usd"] == 0
+    ev = client.get(f"/api/runs/{run_id}/events", headers=h).json()
+    done = [e for e in ev if e["type"] == "agent.turn.completed" and e["agent_id"] == a["id"]]
+    assert done[0]["data"]["text"] == "Local model reply"
+    assert done[0]["data"]["usage"]["input_tokens"] == 11
+    usage = client.get("/api/billing/summary", headers=h).json()["usage_by_model"]
+    assert usage == [{**usage[0], "provider": "ollama", "billed_to": "self_hosted", "cost_usd": 0.0}]
+
+
+def test_connection_validation_rules(client, fake_upstream, monkeypatch):
+    h = register(client)
+    post = lambda body: client.post("/api/credentials", headers=h, json=body)  # noqa: E731
+    assert post({"provider": "huggingface"}).status_code == 422                   # key required
+    assert post({"provider": "openai_compatible"}).status_code == 422             # base URL required
+    r = post({"provider": "mistral", "api_key": "k" * 20, "base_url": "https://evil.example"})
+    assert r.status_code == 400 and "fixed API URL" in r.json()["detail"]
+    r = post({"provider": "ollama", "base_url": "http://user:pw@localhost:11434/v1"})
+    assert r.status_code == 400 and "credentials" in r.json()["detail"]
+    r = post({"provider": "ollama", "base_url": "http://127.0.0.1:9/v1"})  # nothing listening
+    assert r.status_code == 400 and "Could not reach Ollama" in r.json()["detail"]
+
+    # Production default: private/loopback hosts are refused (SSRF), including the built-in localhost default.
+    monkeypatch.setattr(get_settings(), "env", "production")
+    r = post({"provider": "ollama", "base_url": fake_upstream.url + "/compat/ollama/v1"})
+    assert r.status_code == 400 and "Base URL rejected" in r.json()["detail"]
+    # …unless a single-tenant self-hosted install opts in.
+    monkeypatch.setattr(get_settings(), "allow_private_endpoints", True)
+    assert post({"provider": "ollama", "base_url": fake_upstream.url + "/compat/ollama/v1"}).status_code == 201
+
+
+def test_custom_openai_compatible_server_with_estimated_usage(client, fake_upstream):
+    h = register(client)
+    r = client.post("/api/credentials", headers=h, json={
+        "provider": "openai_compatible", "base_url": fake_upstream.url + "/compat/strict/v1",
+        "api_key": "vllm-token-1"})
+    assert r.status_code == 201, r.text
+    pid = make_project(client, h)
+    add_agent(client, h, pid, "Vllm", provider="openai_compatible", model="llama3.2")
+    run_id = client.post(f"/api/projects/{pid}/runs", headers=h, json={"objective": "hi"}).json()["id"]
+    run = wait_run_done(client, h, run_id)
+    assert run["status"] == "completed"
+    ev = client.get(f"/api/runs/{run_id}/events", headers=h).json()
+    usage = next(e for e in ev if e["type"] == "agent.turn.completed")["data"]["usage"]
+    assert usage["tokens_estimated"] is True and usage["cost_usd"] > 0  # may front a paid API: costed, flagged

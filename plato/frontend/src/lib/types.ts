@@ -45,15 +45,28 @@ export type Agent = {
   created_at: string;
 };
 
+export type ProviderCategory = "frontier" | "open" | "local" | "custom";
+
 export type Provider = {
   id: string;
   display_name: string;
   integration: "hosted" | "external" | "simulated";
+  category: ProviderCategory;
   requires_api_key: boolean;
   suggested_models: string[];
   docs_url: string;
+  base_url_mode: "fixed" | "optional" | "required";
+  default_base_url: string | null;
+  self_hosted: boolean;
   connected: boolean;
   platform_managed_available: boolean;
+};
+
+export const CATEGORY_LABEL: Record<ProviderCategory, { title: string; blurb: string }> = {
+  frontier: { title: "Frontier model labs", blurb: "Hosted APIs from the major model labs." },
+  open: { title: "Open models, clouds & routers", blurb: "Open-weight and multi-model APIs: Hugging Face, Mistral, Groq, DeepSeek, Together, OpenRouter." },
+  local: { title: "Local & self-hosted", blurb: "Models on your own machine or server. No per-token charges." },
+  custom: { title: "Custom & connected runtimes", blurb: "Any OpenAI-compatible server, external agent runtimes, and the offline simulator." },
 };
 
 export type Credential = {
@@ -61,6 +74,7 @@ export type Credential = {
   provider: string;
   label: string;
   key_hint: string;
+  base_url: string | null;
   verified_at: string | null;
   created_at: string;
 };

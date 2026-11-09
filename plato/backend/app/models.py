@@ -66,6 +66,8 @@ class ProviderCredential(Base):
     label: Mapped[str] = mapped_column(String(64), default="default")
     encrypted_key: Mapped[str] = mapped_column(Text)
     key_hint: Mapped[str] = mapped_column(String(16))
+    # Optional endpoint override: Ollama/LM Studio host, custom OpenAI-compatible server, Ollama Cloud…
+    base_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
@@ -186,7 +188,7 @@ class UsageRecord(Base):
     output_tokens: Mapped[int] = mapped_column(Integer, default=0)
     cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
     cost_is_estimate: Mapped[bool] = mapped_column(Boolean, default=True)
-    billed_to: Mapped[str] = mapped_column(String(16))  # byok | platform | simulated
+    billed_to: Mapped[str] = mapped_column(String(16))  # byok | platform | self_hosted | simulated
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)
 
 

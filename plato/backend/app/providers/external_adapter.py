@@ -18,42 +18,26 @@ PLATO never exposes credentials or files to the runtime beyond what is in the re
 """
 from __future__ import annotations
 
-import asyncio
-import ipaddress
 import json
-import socket
 from collections.abc import AsyncIterator
-from urllib.parse import urlparse
 
 import httpx
 
-from ..core.config import get_settings
+from ..core.netguard import UnsafeURLError, validate_endpoint_url
 from .base import GenerationRequest, ProviderAdapter, ProviderError, ProviderInfo, StreamEvent, merge_consecutive
 
 
 async def validate_external_url(url: str) -> None:
-    """Basic SSRF protection: http(s) only and no private/loopback targets unless allowed."""
-    parsed = urlparse(url)
-    if parsed.scheme not in ("http", "https") or not parsed.hostname:
-        raise ProviderError("External agent URL must be an absolute http(s) URL.")
-    if get_settings().allow_private_external_agents:
-        return
-    if parsed.scheme != "https":
-        raise ProviderError("External agent URL must use https.")
     try:
-        infos = await asyncio.get_running_loop().getaddrinfo(parsed.hostname, None, type=socket.SOCK_STREAM)
-    except socket.gaierror as exc:
-        raise ProviderError(f"Cannot resolve external agent host: {parsed.hostname}") from exc
-    for info in infos:
-        ip = ipaddress.ip_address(info[4][0])
-        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
-            raise ProviderError("External agent URL resolves to a private network address.")
+        await validate_endpoint_url(url)
+    except UnsafeURLError as exc:
+        raise ProviderError(f"External agent URL rejected: {exc}") from exc
 
 
 class ExternalAgentAdapter(ProviderAdapter):
     info = ProviderInfo(
         id="external", display_name="Connected external agent", integration="external",
-        requires_api_key=False, suggested_models=["default"],
+        requires_api_key=False, suggested_models=["default"], category="custom", base_url_mode="required",
         docs_url="docs/PROTOCOL.md#4-external-agent-protocol",
     )
 

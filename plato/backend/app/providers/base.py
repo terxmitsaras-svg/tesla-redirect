@@ -13,6 +13,11 @@ from typing import Literal
 
 Role = Literal["user", "assistant"]
 Integration = Literal["hosted", "external", "simulated"]
+# Grouping shown in the UI.
+Category = Literal["frontier", "open", "local", "custom"]
+# fixed: provider URL is built in. optional: built-in default, user may override (e.g. Ollama host).
+# required: user must supply it (e.g. a custom OpenAI-compatible server).
+BaseUrlMode = Literal["fixed", "optional", "required"]
 
 
 @dataclass(slots=True)
@@ -38,6 +43,7 @@ class StreamEvent:
     input_tokens: int = 0
     output_tokens: int = 0
     stop_reason: str | None = None
+    estimated: bool = False  # True when the provider reported no token usage and PLATO estimated it
 
 
 @dataclass(slots=True)
@@ -48,6 +54,10 @@ class ProviderInfo:
     requires_api_key: bool
     suggested_models: list[str] = field(default_factory=list)
     docs_url: str = ""
+    category: Category = "frontier"
+    base_url_mode: BaseUrlMode = "fixed"
+    default_base_url: str | None = None
+    self_hosted: bool = False  # runs on the user's own hardware: no per-token API charge
 
 
 class ProviderError(Exception):
@@ -82,3 +92,8 @@ def merge_consecutive(messages: list[ChatMessage]) -> list[ChatMessage]:
     if out and out[0].role != "user":
         out.insert(0, ChatMessage("user", "(conversation start)"))
     return out
+
+
+def estimate_tokens(text: str) -> int:
+    """Rough token estimate (~4 characters per token) for providers that report no usage."""
+    return max(1, len(text) // 4) if text else 0

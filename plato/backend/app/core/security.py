@@ -69,6 +69,8 @@ def decrypt_secret(ciphertext: str) -> str:
 
 
 def key_hint(secret: str) -> str:
+    if not secret:
+        return "no key"
     return f"…{secret[-4:]}" if len(secret) >= 8 else "…"
 
 

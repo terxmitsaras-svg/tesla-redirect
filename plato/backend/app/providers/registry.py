@@ -7,14 +7,16 @@ from .base import ProviderAdapter, ProviderError
 from .external_adapter import ExternalAgentAdapter
 from .gemini_adapter import GeminiAdapter
 from .mock_adapter import MockAdapter
-from .openai_adapter import openai_adapter, xai_adapter
+from .openai_adapter import compatible_adapters, openai_adapter, xai_adapter
 
 _REGISTRY: dict[str, ProviderAdapter] = {}
 
 
 def _build() -> dict[str, ProviderAdapter]:
     adapters: list[ProviderAdapter] = [
-        openai_adapter(), AnthropicAdapter(), xai_adapter(), GeminiAdapter(), ExternalAgentAdapter()
+        openai_adapter(), AnthropicAdapter(), xai_adapter(), GeminiAdapter(),
+        *compatible_adapters(),
+        ExternalAgentAdapter(),
     ]
     if get_settings().enable_mock_provider:
         adapters.append(MockAdapter())

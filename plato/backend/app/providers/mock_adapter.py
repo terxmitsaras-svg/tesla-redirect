@@ -26,6 +26,7 @@ _FROM_RE = re.compile(r'<agent_message from="(?P<name>[^"]+)"')
 class MockAdapter(ProviderAdapter):
     info = ProviderInfo(
         id="mock", display_name="Simulated (offline)", integration="simulated", requires_api_key=False,
+        category="custom", self_hosted=True,
         suggested_models=["sim-fast", "sim-slow"],
     )
 

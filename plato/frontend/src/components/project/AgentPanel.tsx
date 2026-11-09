@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { Agent, Provider } from "@/lib/types";
+import { CATEGORY_LABEL } from "@/lib/types";
 import { agentColor, STATUS_STYLE } from "./util";
 
 type Props = {
@@ -153,10 +154,16 @@ function AgentForm({ projectId, agents, onDone }: { projectId: string; agents: A
           <label className="label" htmlFor="ag-prov">Provider</label>
           <select id="ag-prov" className="input" value={f.provider} onChange={set("provider")} required>
             <option value="" disabled>Select…</option>
-            {providers.map((p) => (
-              <option key={p.id} value={p.id} disabled={!p.connected && !p.platform_managed_available && p.integration === "hosted"}>
-                {p.display_name}{!p.connected && p.integration === "hosted" ? (p.platform_managed_available ? " (platform credits)" : " (connect key first)") : ""}
-              </option>
+            {(["frontier", "open", "local", "custom"] as const).map((cat) => (
+              <optgroup key={cat} label={CATEGORY_LABEL[cat].title}>
+                {providers.filter((p) => p.category === cat).map((p) => {
+                  const usable = p.connected || p.platform_managed_available || p.integration !== "hosted";
+                  const note = !p.connected && p.integration === "hosted"
+                    ? (p.platform_managed_available ? " (platform credits)" : " (connect first)")
+                    : "";
+                  return <option key={p.id} value={p.id} disabled={!usable}>{p.display_name}{note}</option>;
+                })}
+              </optgroup>
             ))}
           </select>
         </div>

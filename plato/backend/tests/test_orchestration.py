@@ -21,8 +21,10 @@ def set_plan(tmp_path, plan: str) -> None:
 class ScriptedAdapter(ProviderAdapter):
     """Test double: reply text is computed from (agent name, turn number, last message)."""
 
-    def __init__(self, script: Callable[[str, int, str], str], pid="scripted", fail_times: int = 0):
-        self.info = ProviderInfo(id=pid, display_name="Scripted (test)", integration="simulated",
+    def __init__(self, script: Callable[[str, int, str], str], pid="scripted", fail_times: int = 0,
+                 integration="simulated"):
+        # integration="hosted" makes it stand in for a paid provider (costed at the fallback price).
+        self.info = ProviderInfo(id=pid, display_name="Scripted (test)", integration=integration,
                                  requires_api_key=False, suggested_models=["s"])
         self.script = script
         self.calls: dict[str, int] = {}
@@ -136,7 +138,8 @@ def test_turn_limit_is_clamped_to_plan(client):
 
 def test_budget_limit_stops_run(client):
     # Unknown model -> fallback price (5/20 $/MTok): each turn costs 1000*5e-6 + 1000*2e-5 = $0.025.
-    register_adapter(ScriptedAdapter(lambda me, n, last: f'step <message to="{"B" if me == "A" else "A"}">x</message>'))
+    register_adapter(ScriptedAdapter(lambda me, n, last: f'step <message to="{"B" if me == "A" else "A"}">x</message>',
+                                     integration="hosted"))
     h = register(client)
     pid = make_project(client, h, budget_usd=0.06, max_agent_messages=100)
     add_agent(client, h, pid, "A", provider="scripted", model="s")
