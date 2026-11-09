@@ -39,7 +39,7 @@ None of these were exercised with real keys or a real Ollama install in the buil
 Server: Windows, macOS, Linux, Kali, Chromebook (Linux), Docker. App (PWA): Windows, macOS, Linux,
 ChromeOS, Android, iPhone/iPad. Terminal: the `plato` CLI (PowerShell, cmd, macOS/Linux shells).
 What was verified on which platform, and how, is listed in [PLATFORMS.md](PLATFORMS.md#what-is-verified-and-how).
-Windows and macOS are verified by CI on GitHub-hosted runners, not on a local machine. iOS Safari
+Windows and macOS have CI jobs but are not yet verified: GitHub Actions has not started any job on this repository (account-level setting). iOS Safari
 (WebKit) was not available to test. No native app-store builds exist; the installable web app
 covers phones and desktops.
 

@@ -129,7 +129,7 @@ plato say "Launch plan" "Focus on the API" --to Developer # from another termina
 | iPhone 15 (layout emulation in Chromium) | full agent run, no layout overflow. **Safari/WebKit itself was not available to test** |
 | PWA (Chromium) | installable with zero installability errors; service worker active; offline page works |
 | HTTPS via Caddy (`same-origin`) | full browser demo through Caddy 2.6 over HTTPS: REST, secure WebSockets, streaming, stop, refresh |
-| Windows (PowerShell 5.1), macOS | covered by CI on GitHub-hosted runners: test suites, installers, start scripts, and an agent run via the CLI. See the CI run for results |
+| Windows (PowerShell 5.1), macOS | **not yet verified.** CI jobs exist for both (test suites, installers, start scripts, an agent run via the CLI), but GitHub has not started any job on this repository (no runner assigned; the repository's other workflow fails the same way), which points to an account-level Actions setting. Once Actions runs, the `PLATO CI` workflow verifies these |
 | Kali, Chromebook | same code path as Debian/Linux; not run on those devices |
 
 Native app-store apps (Microsoft Store, Mac App Store, Google Play, App Store) are not built: the
