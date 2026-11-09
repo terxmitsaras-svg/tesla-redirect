@@ -9,3 +9,5 @@ __pycache__/
 frontend/e2e/shots/
 .venv/
 *.egg-info/
+build/
+dist/

@@ -1,0 +1,213 @@
+PLATO — CONTEXT FOR CLAUDE CODE
+===============================
+Read this before changing anything. It describes what PLATO is, how the code is organised, how to
+run and test it, the rules the code follows, and what is (and is not) verified.
+(CLAUDE.md in this folder imports this file, so Claude Code loads it automatically.)
+
+
+1. WHAT PLATO IS
+----------------
+"PLATO — Multiple Minds. One Intelligence." A real-time command centre where AI agents from
+different providers (OpenAI, Claude, Grok, Gemini, Hugging Face, Mistral, Groq, DeepSeek, Together,
+OpenRouter, Ollama, LM Studio, any OpenAI-compatible server, user-run external agents) work as one
+team under a human "Commander". Agents run concurrently, message each other directly, delegate tasks
+to subagents, and stream every token live into a shared Command Room. Runs are bounded by limits
+(turns, messages, time, USD budget). SaaS features: plans, Stripe billing, BYOK keys, audit logs.
+
+Owner's preferences: be honest (never claim something works without running it), organised, direct,
+and write top-quality code.
+
+Brand: deep black background, icy white, electric blue (#3d8bff), cyan (#5ee7ff), thin elegant type,
+subtle glow, no heavy neon. Wordmark "PLΛTO" (the A drawn as Λ). Logo = Plato's face made of laser
+lines: frontend/public/plato-logo.png (full), plato-mark.png (face), public/icons/* (PWA icons).
+
+
+2. LAYOUT
+---------
+plato/
+  backend/          Python 3.11+ · FastAPI · SQLAlchemy 2 async · WebSockets
+    app/main.py           app factory; startup: create tables, seed plans, mark orphaned runs
+    app/core/             config.py (all PLATO_* settings), security.py (bcrypt, JWT, Fernet, WS
+                          tickets), ratelimit.py, netguard.py (SSRF guard for user URLs)
+    app/db.py             engine/session; _ADDITIVE_COLUMNS = hand migrations for new columns
+    app/models.py         schema (every tenant row has owner_id)
+    app/schemas.py        pydantic request/response models
+    app/plans.py          default plans + entitlement checks (HTTP 402 on limits)
+    app/billing_meter.py  optional Stripe meter events
+    app/api/              routers: auth, providers (credentials), projects (+agents, files),
+                          runs (controls, events, tasks), billing (+admin, audit), ws
+    app/orchestrator/     engine.py (RunManager/RunRuntime/agent workers), protocol.py (event
+                          types + directive parser + neutralize), prompts.py (system prompt, modes),
+                          bus.py (in-memory / Redis pub-sub), pricing.py
+    app/providers/        base.py (adapter contract), anthropic_adapter.py, openai_adapter.py
+                          (OpenAI + every OpenAI-compatible provider via CompatProfile),
+                          gemini_adapter.py, external_adapter.py, mock_adapter.py, registry.py
+    tests/                pytest (59 tests); fake_providers.py = local server speaking each
+                          provider's real streaming wire format
+    scripts/live_demo.py  demo against LIVE OpenAI + Anthropic (costs real money, capped $0.50)
+  frontend/         Next.js 16 App Router · React 19 · TypeScript · Tailwind 3 · installable PWA
+    src/app/              /login, / (projects), /projects/[id], /providers, /billing, manifest.ts
+    src/components/       AppShell, Brand, Pwa (service worker + Install app button),
+                          project/{CommandRoom, AgentPanel, Panels, util}
+    src/lib/              api.ts (fetch + runtime API URL), useProjectStream.ts (WebSocket), types.ts
+    public/               sw.js, offline.html, icons/, logo images
+    e2e/demo.e2e.cjs      Playwright end-to-end demo (needs servers running)
+  cli/              `plato` terminal client (Python; httpx + websockets); tests start a real API
+  scripts/          install.sh / start.sh (macOS, Linux, Kali, ChromeOS) ·
+                    install.ps1 / start.ps1 (Windows PowerShell 5.1 and 7)
+  deploy/Caddyfile  one HTTPS address: /api + /ws -> :8000, everything else -> :3000
+  docs/             ARCHITECTURE, PROTOCOL, DEPLOYMENT, PLATFORMS, STATUS (keep them truthful)
+  docker-compose.yml  postgres + redis + api + web
+  .env.example      every setting, documented
+Repo root also has .github/workflows/plato-ci.yml.
+
+
+3. RUN AND TEST
+---------------
+Install everything:   ./scripts/install.sh      (Windows: powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1)
+Start:                ./scripts/start.sh [--lan]   ->  web http://localhost:3000, API :8000, docs :8000/docs
+Dev mode:             cd backend && uvicorn app.main:app --reload --port 8000
+                      cd frontend && npm run dev
+Backend tests:        cd backend && ruff check app tests && python -m pytest -q        (59 pass)
+CLI tests:            cd cli && python -m pytest -q                                     (11 pass)
+Lint from repo root:  ruff check plato/backend/app plato/backend/tests plato/cli --config plato/backend/pyproject.toml
+Frontend:             cd frontend && npx tsc --noEmit && npm run build
+Browser e2e:          (servers running) cd frontend && WEB_URL=http://localhost:3000 npm run e2e
+PowerShell lint:      pwsh -c "Invoke-ScriptAnalyzer -Path ./scripts"   (only PSAvoidUsingWriteHost allowed)
+
+No API keys? Use provider "mock" ("Simulated (offline)"): deterministic, $0, labelled in the UI.
+It must stay disabled in production (the app refuses to boot otherwise).
+
+Always run the relevant tests after a change and report real results. If something can't be run
+(no keys, no device), say so explicitly.
+
+
+4. HOW THE ORCHESTRATOR WORKS  (backend/app/orchestrator/engine.py)
+-------------------------------------------------------------------
+- RunManager.start_run builds a RunRuntime: resolves each agent's adapter + key/base URL
+  (connection -> keyless default -> platform key with credits -> error), clamps limits to the plan,
+  builds system prompts, creates kickoff tasks for primary agents.
+- One asyncio worker + inbox queue per agent. Agents only wait on their own inbox, never on each other.
+  A per-run semaphore caps concurrent generations (plan max_concurrent_agents).
+- Turn: drain inbox -> wait on pause gate -> stream from adapter (ephemeral agent.delta events) ->
+  record usage/cost -> parse directives -> route messages/tasks -> <done> completes tasks.
+- Agents act via text directives (provider-agnostic, not native tool calling):
+    <message to="Name[, Name]|all">..</message>   <task to="Name" title="..">..</task>   <done>..</done>
+- Run ends on quiescence (nobody busy, inboxes empty, no approval pending) or a limit:
+  max_turns_per_agent, max_agent_messages, max_run_seconds, budget_usd, platform credits.
+- Commander controls (WS and REST): message agents, pause/resume, interrupt one agent, stop,
+  approve/reject delegated tasks. Stop records in-flight turns as agent.turn.interrupted.
+- Retryable provider errors retried twice with backoff; others mark the agent "error" only.
+- Persisted events are written to the DB BEFORE publishing (per-run lock) so seq order is identical
+  in DB and on the wire. Deltas are never stored. Clients gap-fill via GET /api/runs/{id}/events?after_seq=N.
+- Collaboration modes (prompts.py MODES): open_discussion, structured_delegation (hierarchical
+  permissions), parallel, debate, independent_review (agent messaging disabled). Policy is enforced
+  in code, not left to the model.
+- LIMITATION: a run lives inside the API process that started it. Multiple API replicas need sticky
+  sessions; restart marks active runs "interrupted". Moving execution to workers is future work.
+
+
+5. PROVIDERS  (backend/app/providers)
+-------------------------------------
+- Contract: ProviderAdapter.stream(request, api_key, endpoint) yields StreamEvent text deltas then
+  exactly one usage event; list_models() is also used to verify keys. Raise ProviderError(retryable=).
+- Add a provider = new adapter (or a new CompatProfile entry in openai_adapter.compatible_adapters())
+  + register in registry.py. Never change the engine for a provider.
+- Official SDKs only: anthropic, openai, google-genai. Do not hand-roll HTTP for them.
+- CompatProfile: OpenAI/xAI use max_completion_tokens + stream_options.include_usage; everyone else
+  max_tokens and no stream_options unless the provider documents it (Ollama does). Missing usage is
+  estimated (~4 chars/token) and flagged tokens_estimated.
+- Claude: default model claude-opus-5-5. For claude-opus-5-5 / claude-opus-5 / claude-fable-5-1 the
+  adapter sends the server-side refusal fallback (beta server-side-fallback-2026-07-01,
+  fallbacks="default"). stop_reason "refusal" -> non-retryable ProviderError. Do not send
+  temperature/budget_tokens/thinking-disabled to current Claude models.
+- Connections (provider_credentials): Fernet-encrypted key (never returned; only key_hint) and/or
+  base_url (Ollama host, LM Studio, custom server). Every user URL goes through core/netguard.py.
+- Pricing: Anthropic list prices built in; others use a FALLBACK estimate ($5/$20 per MTok) unless
+  PLATO_MODEL_PRICING_JSON sets "provider:model" prices. Self-hosted and simulated runs cost $0.
+  Costs are always shown as estimates.
+
+
+6. FRONTEND RULES
+-----------------
+- API base URL is resolved IN THE BROWSER (lib/api.ts apiUrl()): empty NEXT_PUBLIC_API_URL -> same host
+  as the page, port 8000 (so phones on the LAN work); "same-origin" -> behind deploy/Caddyfile.
+  Never hard-code localhost.
+- Auth: bearer JWT in localStorage; WebSocket uses a one-time ticket (POST /api/auth/ws-ticket).
+- useProjectStream: reconnects with backoff; on "snapshot" the page gap-fills by after_seq.
+- The service worker must never cache /api or /ws.
+- Must stay responsive: phone width, no horizontal scroll, safe-area insets.
+- Design tokens live in tailwind.config.ts and globals.css (.panel, .btn, .chip, .input, .laser).
+
+
+7. SECURITY RULES (do not weaken)
+---------------------------------
+- Tenant isolation: every query filters owner_id; foreign IDs return 404, not 403. Tests cover this.
+- Keys: encrypted at rest, never logged, never sent to agents or returned by the API.
+- Prompt injection: teammate messages/files are wrapped as <agent_message>/<shared_file> data and
+  protocol.neutralize() defangs directive/envelope tags inside untrusted text. Keep this.
+- SSRF: user-supplied URLs must pass netguard (https + public in production; private allowed in dev or
+  with PLATO_ALLOW_PRIVATE_ENDPOINTS=true for single-tenant installs).
+- CORS: production = PLATO_CORS_ORIGINS only; dev also allows LAN/Tailscale origins. allow_credentials
+  is off (no cookies).
+- Production boot refuses default JWT secret, missing PLATO_ENCRYPTION_KEY, or the mock provider.
+- Human approval gate for delegated tasks (project setting approve_delegations).
+- Rate limits are in-process (single instance); use an edge limiter for multiple instances.
+
+
+8. CONFIGURATION (PLATO_* env vars, see .env.example)
+-----------------------------------------------------
+env, database_url (default SQLite), redis_url, jwt_secret, jwt_ttl_minutes, encryption_key,
+cors_origins, cors_origin_regex, admin_emails, enable_mock_provider, allow_private_endpoints,
+platform_{openai,anthropic,xai,gemini}_key, model_pricing_json, default_max_turns_per_agent,
+default_max_agent_messages, default_max_run_seconds, default_max_output_tokens,
+default_run_budget_usd, stripe_secret_key, stripe_webhook_secret, stripe_meter_event_name,
+public_app_url.
+Settings load from plato/.env then backend/.env (UTF-8). Empty "KEY=" means "use the default".
+Frontend: NEXT_PUBLIC_API_URL (empty | same-origin | https://...).
+
+
+9. PLATFORMS
+------------
+Server: Windows, macOS, Linux, Kali, Chromebook (Linux), Docker. App: installable PWA on Windows,
+macOS, Linux, ChromeOS, Android, iPhone/iPad. Terminal: `plato` CLI (PowerShell, cmd, shells).
+Windows-specific rules learned the hard way:
+- .ps1 files must stay pure ASCII (PowerShell 5.1 misreads UTF-8 without BOM).
+- No double quotes inside arguments to native commands in .ps1 (5.1 mangles them).
+- Call npm.cmd on Windows (npm.ps1 is blocked by the default execution policy).
+- No `??`, ternary or `&&` in .ps1 (not in 5.1).
+- Read/write files with encoding="utf-8" explicitly (Windows default is cp1252).
+- CLI --json is single-line when piped (PS 5.1 ConvertFrom-Json reads line by line).
+- SQLite URLs in code/tests: use Path.as_posix().
+
+
+10. CURRENT STATUS / NOT VERIFIED (keep docs/STATUS.md and docs/PLATFORMS.md honest)
+-------------------------------------------------------------------------------------
+Verified here (Linux): all tests, installers and start scripts (bash + PowerShell 7), CLI from
+PowerShell, browser e2e (desktop, Android and iPhone-size layouts over a LAN hostname), PWA
+installability + offline page, full demo over HTTPS via Caddy, Docker Compose with Postgres + Redis
+(before the latest small Docker build-arg change).
+NOT verified:
+- Live calls with real provider keys (only wire-level tests against fake servers).
+- Real Ollama install (fake Ollama-format server only).
+- Windows and macOS: CI jobs exist but GitHub has never started a job on this repo (no runner
+  assigned; looks like an account/billing/Actions setting).
+- Safari/WebKit (iPhone) — not available in the build sandbox.
+- Live Stripe account (webhooks tested with signed payloads only).
+Not built yet: dynamic subagent spawning, worker processes / Redis control channel, S3 file storage,
+tool execution + sandboxed code runners, persistent cross-run memory, native tool calling, team
+workspaces/roles, Alembic migrations, email verification/password reset/MFA, app-store packages.
+
+
+11. WORKING CONVENTIONS
+-----------------------
+- Git branch for this work: ccr-32ba2633-daqd5v. PLATO lives in plato/ of the tesla-redirect repo
+  (the rest of the repo is unrelated: android/, scraper/, callback/...). Don't touch those.
+- Never commit .env, *.db, .venv/, node_modules/, .next/, build/, *.egg-info.
+- Python: ruff (line length 120, py311 target), type hints, async everywhere in the backend.
+- Keep fixes minimal and tested; add a regression test for every bug fixed.
+- Update docs when behaviour changes; never mark something verified that wasn't run.
+- Sandbox notes (only relevant inside Claude Code cloud sessions): an HTTPS proxy is set in the
+  environment — Chromium/Playwright sends WebSockets to non-localhost hosts through it (502); unset
+  HTTPS_PROXY for browser tests. Docker builds need the sandbox CA (/root/.ccr/ca-bundle.crt) injected
+  via a temporary, uncommitted Dockerfile copy.
