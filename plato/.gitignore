@@ -1,0 +1,9 @@
+.env
+*.db
+node_modules/
+.next/
+*.tsbuildinfo
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+frontend/e2e/shots/

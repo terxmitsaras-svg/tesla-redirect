@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: #020306;
+  color: #e8f1ff;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-image:
+    radial-gradient(1200px 600px at 70% -10%, rgba(61, 139, 255, 0.07), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(94, 231, 255, 0.04), transparent 60%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgba(94, 231, 255, 0.25);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 197, 255, 0.18) transparent;
+}
+
+@layer components {
+  .panel {
+    @apply rounded-xl border border-line bg-panel/80 backdrop-blur-sm;
+  }
+  .panel-title {
+    @apply text-[11px] font-medium uppercase tracking-[0.22em] text-mist;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line px-3 py-1.5 text-sm text-ice transition
+      hover:border-cyan/40 hover:shadow-glow-sm disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:shadow-none;
+  }
+  .btn-primary {
+    @apply btn border-volt/50 bg-volt/15 hover:bg-volt/25;
+  }
+  .btn-danger {
+    @apply btn border-bad/40 text-bad hover:border-bad/70 hover:shadow-none;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line bg-black/40 px-3 py-2 text-sm text-ice placeholder:text-mist/60
+      focus:border-cyan/50 focus:outline-none focus:ring-1 focus:ring-cyan/30;
+  }
+  .label {
+    @apply mb-1 block text-xs text-mist;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[11px] text-mist;
+  }
+  .laser {
+    background: linear-gradient(90deg, transparent, rgba(94, 231, 255, 0.55), transparent);
+    height: 1px;
+  }
+}
